@@ -1,35 +1,11 @@
 import * as THREE from 'three';
 
-export default class PhysicsBody {
-    constructor ({mass = 1, size = [1, 32, 16], position = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff })}) {
+export default class PhysicsBody extends THREE.Mesh {
+    constructor ({mass = 1, position = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
+        super(geometry, material)
         this.mass = mass;
-        this.size = size;
-        this.radius = size[0];
+        this.radius = geometry.parameters.radius;
         this.density = mass / ((4/3*Math.PI*((this.radius/2)**3)));
-
-        this.geometry = new THREE.SphereGeometry(...this.size);
-        this.material = material;
-        this.mesh = new THREE.Mesh(this.geometry, this.material);
-        this.mesh.position.set(...position);
-    }
-
-    setPosition(position) {
-        this.mesh.position.set(...position);
-    }
-
-    setRotation(rotation) {
-        this.mesh.rotation.set(...rotation);
-    }
-
-    setXRotation(xRotation) {
-        this.mesh.rotation.set(xRotation, this.mesh.rotation.y, this.mesh.rotation.z);
-    }
-
-    setYRotation(yRotation) {
-        this.mesh.rotation.set(this.mesh.rotation.x, yRotation, this.mesh.rotation.z);
-    }
-
-    setZRotation(zRotation) {
-        this.mesh.rotation.set(this.mesh.rotation.x, this.mesh.rotation.y, zRotation);        
+        this.position.set(...position);
     }
 }
