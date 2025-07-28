@@ -15,4 +15,10 @@ export default class Star extends PhysicsBody {
         this.group.add(pointLight);
         this.group.position.copy(this.position);
     }
+
+    setPosition(position) {
+        this.group.position.set(...position);
+        this.pointLight.position.set(...position);
+        this.position.set(...position);
+    }
 }
