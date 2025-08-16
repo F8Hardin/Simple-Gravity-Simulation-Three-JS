@@ -6,14 +6,12 @@ export default class Star extends PhysicsBody {
         super({mass, position , material , geometry});
 
         this.pointLight = pointLight;
-        this.pointLight.position.copy(this.position);
-        this.ambientLight = ambientLight;
         this.add(this.pointLight);
-        this.add(this.ambientLight);
-    }
-
-    setPosition(position) {
-        this.pointLight.position.set(...position);
-        this.position.set(...position);
+        this.pointLight.position.set(0, 0, 0);
+        
+        if (ambientLight) {
+            this.ambientLight = ambientLight;
+            this.add(this.ambientLight);
+        }
     }
 }
