@@ -6,8 +6,21 @@
     <style>
       body { margin: 0; }
     </style>
+    <link rel="stylesheet" href="index.css">
   </head>
   <body>
+    <div class="ControlAccessButton" onclick="restartSim()">
+      Refresh
+      <!--Add some controls plus some data to display like velocity XYZ, angular velocity, momentum, acceleration-->
+    </div>
     <script type="module" src="/main.js"></script>
+    <script type="module">
+      import { init } from "/main.js";
+
+      function restartSim() {
+        init();
+      }
+      window.restartSim = restartSim;
+    </script>
   </body>
 </html>

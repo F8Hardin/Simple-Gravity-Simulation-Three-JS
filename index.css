@@ -1,0 +1,14 @@
+.ControlAccessButton {
+    position: fixed;
+    top: 1%;
+    left: 1%;
+    box-sizing: border-box;
+    border: 2px solid #2b2b2b1A;
+    border-radius: 25px;
+    padding: 10px;
+    z-index: 9999;
+    background-color: black;
+    color: #2b2b2b;
+    justify-content: center;
+    align-items: center;
+}
