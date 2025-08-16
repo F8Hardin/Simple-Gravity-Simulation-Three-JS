@@ -1,15 +1,18 @@
 import * as THREE from 'three';
 import PhysicsBody from './Bodies/physicsBody.js'
 import Star from './Bodies/star'
-import { sqrt } from 'three/tsl';
+import { randInt } from 'three/src/math/MathUtils.js';
 
 let scene, camera, renderer, pivot, sun, physBodies = [];
 let scrollModifier = .1;
 let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraMin = 200; let cameraMax = 10000;
 let clock = new THREE.Clock();
-let gravConstant = .1;
+let gravConstant = 100;
+let softening = 1;
+let bodyCount = 50;
 
-function init() {
+export function init() {
+  cleanUp();
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 10000 );
 
@@ -22,22 +25,14 @@ function init() {
 
   pivot = new THREE.Group();
 
-  sun = new Star({mass: 500, position : [0, 0, 0],  geometry : new THREE.SphereGeometry(20, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  sun = new Star({mass: 100, position : [20, 0, 0], geometry : new THREE.SphereGeometry(2, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
   physBodies.push(sun);
   
-  let planet1 = new PhysicsBody({mass: 20, position : [100, 10, 5], initialVelocity: [10, 15, -10], geometry : new THREE.SphereGeometry(10, 32, 16),  material : new THREE.MeshStandardMaterial({color : "#2d7af7"})});
-  physBodies.push(planet1);
-  let planet2 = new PhysicsBody({mass: 10, position : [200, 0, 0], initialVelocity: [5, 5, 5], geometry : new THREE.SphereGeometry(5, 32, 16),  material : new THREE.MeshStandardMaterial({color : "red"})});
-  physBodies.push(planet2);
-  let planet3 = new PhysicsBody({ mass: 20, position : [-300, 50, 0],  initialVelocity: [0, -6, 2],  geometry : new THREE.SphereGeometry(7, 32, 16),  material : new THREE.MeshStandardMaterial({ color : "blue" }) });
-  physBodies.push(planet3);
-  let planet4 = new PhysicsBody({ mass: 5, position : [0, -400, 0],  initialVelocity: [6, 0, -3],  geometry : new THREE.SphereGeometry(4, 32, 16),  material : new THREE.MeshStandardMaterial({ color : "green" }) });
-  physBodies.push(planet4);
-  let planet5 = new PhysicsBody({ mass: 15, position : [100, 300, 0],  initialVelocity: [-4, 2, 1],  geometry : new THREE.SphereGeometry(6, 32, 16),  material : new THREE.MeshStandardMaterial({ color : "purple" }) });
-  physBodies.push(planet5);
-  let planet6 = new PhysicsBody({ mass: 8, position : [0, 0, 500],  initialVelocity: [-3, -4, 0],  geometry : new THREE.SphereGeometry(3, 32, 16),  material : new THREE.MeshStandardMaterial({ color : "orange" }) });
-  physBodies.push(planet6);
-
+  for (let i = 0; i < bodyCount; i++) {
+    let color = new THREE.Color( 0xffffff );
+    color.setHex( Math.random() * 0xffffff );
+    physBodies.push(new PhysicsBody({ mass: 10, position: [randInt(-20, 20), randInt(-20, 20), randInt(-20, 20)], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+  }
 
   for (let b of physBodies) {
     pivot.add(b);
@@ -48,39 +43,39 @@ function init() {
 }
 
 function animate() {
-  let timeSinceLastFrame = clock.getDelta();
+  let timeSinceLastFrame = Math.min(clock.getDelta(), 1/30);
 
-  for (let b of physBodies) { //reset acceleration
-    b.acceleration[0] = 0;
-    b.acceleration[1] = 0;
-    b.acceleration[2] = 0;
+  for (let body of physBodies) { //reset acceleration
+    body.acceleration[0] = 0;
+    body.acceleration[1] = 0;
+    body.acceleration[2] = 0;
   }
 
-  for (let key in physBodies){
-    for (let otherBody in physBodies){
-      if (physBodies[key] != physBodies[otherBody]){ //dont simulate with itself
-        let m1 = physBodies[key];
-        let m2 = physBodies[otherBody];
+  for (let i = 0; i < physBodies.length; i++) {
+    let body1 = physBodies[i]
+    for (let j = i + 1; j < physBodies.length; j++) {
+      let body2 = physBodies[j];
 
-        let dx = m2.position.x - m1.position.x;
-        let dy = m2.position.y - m1.position.y;
-        let dz = m2.position.z - m1.position.z;
+      let dx = body2.position.x - body1.position.x;
+      let dy = body2.position.y - body1.position.y;
+      let dz = body2.position.z - body1.position.z;
 
-        let distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      let distance = Math.sqrt(dx * dx + dy * dy + dz * dz + softening);
 
-        let accelerationX = gravConstant * (m2.mass / (distance ** 3)) * dx;
-        let accelerationY = gravConstant * (m2.mass / (distance ** 3)) * dy;
-        let accelerationZ = gravConstant * (m2.mass / (distance ** 3)) * dz;
+      let body1AccelerationX = gravConstant * (dx / (distance ** 3)) * body2.mass;
+      let body1AccelerationY = gravConstant * (dy / (distance ** 3)) * body2.mass;
+      let body1AccelerationZ = gravConstant * (dz / (distance ** 3)) * body2.mass;
 
-        console.log("Acceleration. X: " + accelerationX + ". Y: " + accelerationY + ". Z: " + accelerationZ)
-        physBodies[key].acceleration[0] += accelerationX;
-        physBodies[key].acceleration[1] += accelerationY;
-        physBodies[key].acceleration[2] += accelerationZ;
+      body1.acceleration[0] += body1AccelerationX;
+      body1.acceleration[1] += body1AccelerationY;
+      body1.acceleration[2] += body1AccelerationZ;
 
-        physBodies[otherBody].acceleration[0] -= accelerationX;
-        physBodies[otherBody].acceleration[1] -= accelerationY;
-        physBodies[otherBody].acceleration[2] -= accelerationZ;
-      }
+      let body2AccelerationX = -gravConstant * (dx / (distance ** 3)) * body1.mass;
+      let body2AccelerationY = -gravConstant * (dy / (distance ** 3)) * body1.mass;
+      let body2AccelerationZ = -gravConstant * (dz / (distance ** 3)) * body1.mass;
+      body2.acceleration[0] += body2AccelerationX;
+      body2.acceleration[1] += body2AccelerationY;
+      body2.acceleration[2] += body2AccelerationZ;
     }
   }
 
@@ -97,13 +92,9 @@ function resize() {
   camera.updateProjectionMatrix();
 }
 
-function clamp(value, min, max) {
-  return Math.max(min, Math.min(max, value));
-}
-
 window.addEventListener('wheel', (e) => {
   let scrollY = e.deltaY * scrollModifier;
-  camera.position.z = clamp(camera.position.z + scrollY, cameraMin, cameraMax);
+  camera.position.z += scrollY;
 });
 
 window.addEventListener('mousedown', (e) => { spinCamera = true; lastX = e.clientX; lastY = e.clientY});
@@ -129,4 +120,36 @@ window.addEventListener('keydown', (e) => {
 });
 
 window.addEventListener( 'resize', resize );
-init()
+init();
+
+function cleanUp() {
+  if (renderer) {
+    renderer.setAnimationLoop(null);
+    renderer.dispose();
+
+    const gl = renderer.getContext();
+    gl?.getExtension("WEBGL_lose_context")?.loseContext?.();
+
+    renderer.domElement.remove();
+  }
+
+  if (scene) {
+    scene.traverse(obj => {
+      if (obj.geometry) obj.geometry.dispose?.();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(m => m.dispose?.());
+        } else {
+          obj.material.dispose?.();
+        }
+      }
+    });
+  }
+
+  renderer = null;
+  scene = null;
+  camera = null;
+  pivot = null;
+  sun = null;
+  physBodies = [];
+}
