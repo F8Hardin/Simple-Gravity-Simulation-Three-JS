@@ -13,11 +13,11 @@ export default class PhysicsBody extends THREE.Mesh {
     }
 
     animate(timeSinceLastFrame){ //called in animate of main to update this physics body
-        this.position.x += (this.velocity[0] * timeSinceLastFrame);
-        this.position.y += (this.velocity[1] * timeSinceLastFrame);
-        this.position.z += (this.velocity[2] * timeSinceLastFrame);
-        this.velocity[0] += this.acceleration[0];
-        this.velocity[1] += this.acceleration[1];
-        this.velocity[2] += this.acceleration[2];
+        this.velocity[0] += this.acceleration[0] * timeSinceLastFrame;
+        this.velocity[1] += this.acceleration[1] * timeSinceLastFrame;
+        this.velocity[2] += this.acceleration[2] * timeSinceLastFrame;
+        this.position.x += this.velocity[0] * timeSinceLastFrame;
+        this.position.y += this.velocity[1] * timeSinceLastFrame;
+        this.position.z += this.velocity[2] * timeSinceLastFrame;
     }
 }
