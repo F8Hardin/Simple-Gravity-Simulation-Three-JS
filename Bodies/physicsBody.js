@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 //using metric system
 
+let velocityCollisionChange = -.75;
+
 export default class PhysicsBody extends THREE.Mesh {
-    constructor ({mass = 1, showTrail = false, trailLength = 10, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
+    constructor ({root, mass = 1, showTrail = false, trailLength = 25, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
         super(geometry, material)
         this.mass = mass;
         this.radius = geometry.parameters.radius;
@@ -10,6 +12,14 @@ export default class PhysicsBody extends THREE.Mesh {
         this.position.set(...position);
         this.velocity = initialVelocity;
         this.acceleration = [0, 0, 0];
+        this.positions = [];
+        this.showTrail = showTrail;
+        this.root = root;
+        this.trailLength = trailLength;
+
+        if (showTrail){
+            this.lineCurve = new THREE.LineCurve(this.position, this.position);
+        }
     }
 
     checkCollision(otherBody){
@@ -25,12 +35,12 @@ export default class PhysicsBody extends THREE.Mesh {
             otherBody.position.addScaledVector(direction, .5 * overlap);
 
             //update velocity - simplely reversing it
-            this.velocity[0] *= -1;
-            this.velocity[1] *= -1;
-            this.velocity[2] *= -1;
-            otherBody.velocity[0] *= -1;
-            otherBody.velocity[1] *= -1;
-            otherBody.velocity[2] *= -1;
+            this.velocity[0] *= velocityCollisionChange;
+            this.velocity[1] *= velocityCollisionChange;
+            this.velocity[2] *= velocityCollisionChange;
+            otherBody.velocity[0] *= velocityCollisionChange;
+            otherBody.velocity[1] *= velocityCollisionChange;
+            otherBody.velocity[2] *= velocityCollisionChange;
         }
     }
 
@@ -42,8 +52,23 @@ export default class PhysicsBody extends THREE.Mesh {
         this.position.y += this.velocity[1] * timeSinceLastFrame;
         this.position.z += this.velocity[2] * timeSinceLastFrame;
 
-        // if (this.showTrail){
-        //     //add a trail with length trail length
-        // }
+        if (this.showTrail && this.root){
+            let wp = new THREE.Vector3();
+            this.getWorldPosition(wp);    
+            this.positions.push(this.root.worldToLocal(wp.clone()));
+            if (this.positions.length > this.trailLength) {
+                this.positions.shift();
+            }
+
+            const geometry = new THREE.BufferGeometry().setFromPoints(this.positions);
+            if (!this.trailLine) {
+                const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+                this.trailLine = new THREE.Line(geometry, material);
+                this.root.add(this.trailLine);
+            } else {
+                this.trailLine.geometry.dispose();
+                this.trailLine.geometry = geometry;
+            }
+        }
     }
 }
