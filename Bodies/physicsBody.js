@@ -71,4 +71,8 @@ export default class PhysicsBody extends THREE.Mesh {
             }
         }
     }
+
+    setShowTrail(showValue){
+        this.showTrail = false;
+    }
 }
