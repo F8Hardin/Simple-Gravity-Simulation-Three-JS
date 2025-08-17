@@ -10,17 +10,35 @@
   </head>
   <body>
     <div class="ControlAccessButton" onclick="restartSim()">
-      Refresh
-      <!--Add some controls plus some data to display like velocity XYZ, angular velocity, momentum, acceleration-->
+      <p id="frameRate"></p>
+      <p id="bodyCount"></p>
+      <input type="range" min="1" max="2500" value="50" class="slider" id="bodyCountSlider">
+      <p> Click to refresh </p>
+      <!--Add some controls plus some data to display like velocity XYZ, angular velocity, momentum, acceleration. Maybe add different animation functions to demonstrate different algorithms.-->
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
-      import { init } from "/main.js";
+      import { init, getFramerate, bodyCount, setBodyCount } from "/main.js";
+
+      let bodyCountSlider = document.getElementById("bodyCountSlider");
+      bodyCountSlider.value = bodyCount;
 
       function restartSim() {
         init();
       }
       window.restartSim = restartSim;
+
+      function updateSimData() {
+        document.getElementById("frameRate").textContent = "FPS: " + getFramerate();
+        document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountSlider.value;
+      }
+      setInterval(updateSimData, 100);
+
+      function updateBodyCount() {
+        setBodyCount(bodyCountSlider.value);
+        init();
+      }
+      bodyCountSlider.addEventListener('mouseup', updateBodyCount);
     </script>
   </body>
 </html>
