@@ -3,13 +3,12 @@ import PhysicsBody from './Bodies/physicsBody.js'
 import Star from './Bodies/star'
 import { randInt } from 'three/src/math/MathUtils.js';
 
-let scene, camera, renderer, pivot, sun, physBodies = [];
-let scrollModifier = .1;
-let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraMin = 200; let cameraMax = 10000;
+let scene, camera, renderer, pivot, sun, physBodies = []; let maxSpawnRange = 100;
+let scrollModifier = .1; let gravConstant = 100; export let bodyCount = 100;
+let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraDefault = 200;
+
+let frameRate = 0;
 let clock = new THREE.Clock();
-let gravConstant = 100;
-let softening = 1;
-let bodyCount = 50;
 
 export function init() {
   cleanUp();
@@ -21,17 +20,18 @@ export function init() {
   renderer.setAnimationLoop( animate );
   document.body.appendChild( renderer.domElement );
 
-  camera.position.z = 400;
+  camera.position.z = cameraDefault;
 
   pivot = new THREE.Group();
 
-  sun = new Star({mass: 100, position : [20, 0, 0], geometry : new THREE.SphereGeometry(2, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  //sun = new Star({mass: 10, position : [20, 0, 0], geometry : new THREE.SphereGeometry(1, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  sun = new Star({mass: 10, position : [0, 0, 0], geometry : new THREE.SphereGeometry(1, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
   physBodies.push(sun);
   
   for (let i = 0; i < bodyCount; i++) {
     let color = new THREE.Color( 0xffffff );
     color.setHex( Math.random() * 0xffffff );
-    physBodies.push(new PhysicsBody({ mass: 10, position: [randInt(-20, 20), randInt(-20, 20), randInt(-20, 20)], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+    physBodies.push(new PhysicsBody({ mass: 10, position: [randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
   }
 
   for (let b of physBodies) {
@@ -43,7 +43,9 @@ export function init() {
 }
 
 function animate() {
-  let timeSinceLastFrame = Math.min(clock.getDelta(), 1/30);
+  let clockDelta = clock.getDelta();
+  let timeSinceLastFrame = Math.min(clockDelta, 1/30);
+  frameRate = 1 / clockDelta;
 
   for (let body of physBodies) { //reset acceleration
     body.acceleration[0] = 0;
@@ -60,7 +62,8 @@ function animate() {
       let dy = body2.position.y - body1.position.y;
       let dz = body2.position.z - body1.position.z;
 
-      let distance = Math.sqrt(dx * dx + dy * dy + dz * dz + softening);
+      let distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      distance = Math.max(distance, body1.radius + body2.radius);
 
       let body1AccelerationX = gravConstant * (dx / (distance ** 3)) * body2.mass;
       let body1AccelerationY = gravConstant * (dy / (distance ** 3)) * body2.mass;
@@ -76,11 +79,13 @@ function animate() {
       body2.acceleration[0] += body2AccelerationX;
       body2.acceleration[1] += body2AccelerationY;
       body2.acceleration[2] += body2AccelerationZ;
+
+      body1.checkCollision(body2);
     }
   }
 
   for (let b of physBodies){
-    b.animate(timeSinceLastFrame);
+    b.updatePhysics(timeSinceLastFrame);
   }
 
   renderer.render( scene, camera );
@@ -152,4 +157,12 @@ function cleanUp() {
   pivot = null;
   sun = null;
   physBodies = [];
+}
+
+export function getFramerate(){
+  return frameRate.toPrecision(3);
+}
+
+export function setBodyCount(newCount){
+  bodyCount = newCount;
 }
