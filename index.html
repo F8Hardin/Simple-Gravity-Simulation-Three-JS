@@ -25,6 +25,8 @@
       let bodyCountSlider = document.getElementById("bodyCountSlider");
       bodyCountSlider.value = bodyCount;
       let showTrailsBox = document.getElementById("showTrails");
+      toggleTrails(false);
+      showTrailsBox.checked = false;
 
       function restartSim() {
         init();
