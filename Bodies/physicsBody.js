@@ -1,8 +1,6 @@
 import * as THREE from 'three';
 //using metric system
 
-let velocityCollisionChange = -.75;
-
 export default class PhysicsBody extends THREE.Mesh {
     constructor ({root, mass = 1, showTrail = false, trailLength = 25, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
         super(geometry, material)
@@ -34,13 +32,18 @@ export default class PhysicsBody extends THREE.Mesh {
             this.position.addScaledVector(direction, -.5 * overlap);
             otherBody.position.addScaledVector(direction, .5 * overlap);
 
-            //update velocity - simplely reversing it
-            this.velocity[0] *= velocityCollisionChange;
-            this.velocity[1] *= velocityCollisionChange;
-            this.velocity[2] *= velocityCollisionChange;
-            otherBody.velocity[0] *= velocityCollisionChange;
-            otherBody.velocity[1] *= velocityCollisionChange;
-            otherBody.velocity[2] *= velocityCollisionChange;
+            //update velocity
+            //get magnitude of velocity on collision normal, scale direction by it
+            let thisVCopy = new THREE.Vector3(...this.velocity);
+            let thisVNormal = direction.clone().multiplyScalar(thisVCopy.dot(direction));
+            let otherVCopy = new THREE.Vector3(...otherBody.velocity);
+            let otherVNormal = direction.clone().multiplyScalar(otherVCopy.dot(direction));
+            
+            //substract scaled normal component
+            thisVCopy.sub(thisVNormal.clone().multiplyScalar(2));
+            otherVCopy.sub(otherVNormal.clone().multiplyScalar(2));
+            this.velocity = [thisVCopy.x, thisVCopy.y, thisVCopy.z];
+            otherBody.velocity = [otherVCopy.x, otherVCopy.y, otherVCopy.z];
         }
     }
 
