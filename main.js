@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import PhysicsBody from './Bodies/physicsBody.js'
-import Star from './Bodies/star'
+import Star from './Bodies/star.js'
 import { randInt } from 'three/src/math/MathUtils.js';
 
 let scene, camera, renderer, pivot, sun, physBodies = []; let maxSpawnRange = 100;
-let scrollModifier = .1; let gravConstant = 100; export let bodyCount = 100; let showTrails = false;
+let scrollModifier = .1; let gravConstant = 100; export let bodyCount = 10; export let showTrails = true; let trailLengths = 1000;
 let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraDefault = 200;
 
 let frameRate = 0;

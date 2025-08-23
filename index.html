@@ -20,13 +20,14 @@
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
-      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail } from "/main.js";
+      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails } from "/main.js";
 
       let bodyCountSlider = document.getElementById("bodyCountSlider");
       bodyCountSlider.value = bodyCount;
       let showTrailsBox = document.getElementById("showTrails");
-      toggleTrails(false);
-      showTrailsBox.checked = false;
+
+      console.log(showTrails);
+      showTrailsBox.checked = showTrails;
 
       function restartSim() {
         init();
