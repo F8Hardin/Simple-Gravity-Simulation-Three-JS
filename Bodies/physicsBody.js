@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 //using metric system
 
-let bounceEffect = .5;
+let bounceEffect = .01;
 
 export default class PhysicsBody extends THREE.Mesh {
     constructor ({root, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
@@ -35,17 +35,42 @@ export default class PhysicsBody extends THREE.Mesh {
             this.position.addScaledVector(direction, -.5 * overlap);
             otherBody.position.addScaledVector(direction, .5 * overlap);
 
-            //momentum - inelastic with impulse correction
+            //momentum
             let thisVel = new THREE.Vector3(...this.velocity);
             let otherVel = new THREE.Vector3(...otherBody.velocity);
-            let thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
-            let otherNewVel = otherVel.clone().multiplyScalar(otherBody.mass).add(thisVel.clone().multiplyScalar(this.mass)).divideScalar(this.mass + otherBody.mass);
             let rel = thisVel.clone().sub(otherVel).dot(direction);
+
+            //Totally inelastic
+            let thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
+            let otherNewVel = thisNewVel.clone();
+
+            //impulse to simulate bounce
             if (rel > 0){
                 let invSum = 1 / (this.mass + otherBody.mass);
                 thisNewVel.addScaledVector(direction, -(1 + bounceEffect) * (otherBody.mass * invSum) * rel);
                 otherNewVel.addScaledVector(direction,  +(1 + bounceEffect) * (this.mass * invSum) * rel);
             }
+
+            // Inelastic along collision normal using impulse
+            //project relative velocity onto the collision normal - gets velocity in direction of collision
+
+            // // if not approaching along the normal, leave velocities as-is
+            // if (rel >= 0){
+            //     // keep current velocities
+            //     var thisNewVel  = thisVel;
+            //     var otherNewVel = otherVel;
+            // } else {
+            //     // coefficient of restitution (0 = inelastic / no bounce, 1 = elastic) is bouncEffect
+
+            //     // impulse magnitude (point-mass, no rotation)
+            //     // j = -(1+e) * rel / (1/m1 + 1/m2)
+            //     let invMassSum = (1 / this.mass) + (1 / otherBody.mass);
+            //     let j = - (1 + bounceEffect) * rel / invMassSum;
+
+            //     // apply change in velocity based on impulse
+            //     var thisNewVel  = thisVel.clone().add(direction.clone().multiplyScalar( j / this.mass));
+            //     var otherNewVel = otherVel.clone().add(direction.clone().multiplyScalar(-j / otherBody.mass));
+            // }
 
             this.velocity[0] = thisNewVel.x; this.velocity[1] = thisNewVel.y; this.velocity[2] = thisNewVel.z;
             otherBody.velocity[0] = otherNewVel.x; otherBody.velocity[1] = otherNewVel.y; otherBody.velocity[2] = otherNewVel.z;
