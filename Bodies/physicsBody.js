@@ -81,6 +81,18 @@ export default class PhysicsBody extends THREE.Mesh {
     }
 
     setShowTrail(showValue){
-        this.showTrail = false;
+        this.showTrail = showValue;
+
+        if (!showValue){
+            this.positions = [];
+            this.trailLine.geometry.dispose();
+            this.trailLine.material.dispose();
+            this.root.remove(this.trailLine);
+            this.trailLine = null;
+        }
     }
 }
+
+
+//Add ability to swap between inelastic collision and elastic
+//Add ability to swap animate functions, demonstrating different algorithm efficiencies
