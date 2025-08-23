@@ -3,8 +3,8 @@ import PhysicsBody from './Bodies/physicsBody.js'
 import Star from './Bodies/star.js'
 import { randInt } from 'three/src/math/MathUtils.js';
 
-let scene, camera, renderer, pivot, sun, physBodies = []; let maxSpawnRange = 100;
-let scrollModifier = .1; let gravConstant = 100; export let bodyCount = 10; export let showTrails = true; let trailLengths = 1000;
+let scene, camera, renderer, pivot, sun, physBodies = []; export let maxSpawnRange = 100;
+let scrollModifier = .1; let gravConstant = 100; export let bodyCount = 20; export let showTrails = true; let trailLengths = 1000;
 let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraDefault = 200;
 
 let frameRate = 0;
@@ -24,14 +24,14 @@ export function init() {
 
   pivot = new THREE.Group();
 
-  sun = new Star({mass: 100, position : [20, 0, 0], showTrail: showTrails, geometry : new THREE.SphereGeometry(2, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
-  //sun = new Star({ root: pivot, mass: 10, showTrail: showTrail, position : [0, 0, 0], geometry : new THREE.SphereGeometry(1, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  //sun = new Star({mass: 100, position : [20, 0, 0], showTrail: showTrails, geometry : new THREE.SphereGeometry(2, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  sun = new Star({ root: pivot, mass: 10, trailColor: "#f2df07", showTrail: showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(1, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
   physBodies.push(sun);
   
   for (let i = 0; i < bodyCount; i++) {
     let color = new THREE.Color( 0xffffff );
     color.setHex( Math.random() * 0xffffff );
-    physBodies.push(new PhysicsBody({ root: pivot, mass: 10, showTrail: showTrails, trailLength: 100, position: [randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+    physBodies.push(new PhysicsBody({ root: pivot, mass: 10, trailColor: color, showTrail: showTrails, trailLength: trailLengths, position: [randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
   }
 
   for (let b of physBodies) {
@@ -172,4 +172,8 @@ export function setShowTrail(showValue){
   for (let b of physBodies){
     b.setShowTrail(showValue);
   }
+}
+
+export function setSpawnRange(rangeValue) {
+  maxSpawnRange = rangeValue;
 }

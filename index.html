@@ -9,22 +9,26 @@
     <link rel="stylesheet" href="index.css">
   </head>
   <body>
-    <div class="ControlAccessButton" onclick="restartSim()">
+    <div class="ControlAccessButton">
       <p id="frameRate"></p>
       <p id="bodyCount"></p>
-      <input type="range" min="1" max="2500" value="50" class="slider" id="bodyCountSlider">
+      <input type="range" min="1" max="1000" value="50" class="slider" id="bodyCountSlider">
       <input type="checkbox" id="showTrails" onclick="toggleTrails()">
-      <p> Click to refresh </p>
+      <p id="spawnRange"></p>
+      <input type="range" min="1" max="500" value="50" class="slider" id="spawnRangeSlider">
+      <p  onclick="restartSim()"> Click here to refresh </p>
       <!--Add some controls plus some data to display like velocity XYZ, angular velocity, momentum, acceleration. Maybe add different animation functions to demonstrate different algorithms.-->
       <!--Maybe add config options - using the body count with controls for particle system play, and one is the default milky way model setup to detail-->
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
-      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails } from "/main.js";
+      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails, setSpawnRange, maxSpawnRange } from "/main.js";
 
       let bodyCountSlider = document.getElementById("bodyCountSlider");
       bodyCountSlider.value = bodyCount;
       let showTrailsBox = document.getElementById("showTrails");
+      let spawnRangeSlider = document.getElementById("spawnRangeSlider");
+      spawnRangeSlider.value = maxSpawnRange;
 
       console.log(showTrails);
       showTrailsBox.checked = showTrails;
@@ -37,6 +41,7 @@
       function updateSimData() {
         document.getElementById("frameRate").textContent = "FPS: " + getFramerate();
         document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountSlider.value;
+        document.getElementById("spawnRange").textContent = "Spawn Range: " + spawnRangeSlider.value;
       }
       setInterval(updateSimData, 100);
 
@@ -50,6 +55,12 @@
         setShowTrail(showTrailsBox.checked)
       }
       window.toggleTrails = toggleTrails;
+
+      function updateSpawnRange() {
+        setSpawnRange(spawnRangeSlider.value);
+        init();
+      }
+      spawnRangeSlider.addEventListener('mouseup', updateSpawnRange);
     </script>
   </body>
 </html>
