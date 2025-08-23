@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 //using metric system
 
+let bounceEffect = .5;
+
 export default class PhysicsBody extends THREE.Mesh {
-    constructor ({root, mass = 1, showTrail = false, trailLength = 25, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
+    constructor ({root, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
         super(geometry, material)
         this.mass = mass;
         this.radius = geometry.parameters.radius;
@@ -14,6 +16,7 @@ export default class PhysicsBody extends THREE.Mesh {
         this.showTrail = showTrail;
         this.root = root;
         this.trailLength = trailLength;
+        this.trailColor = trailColor;
 
         if (showTrail){
             this.lineCurve = new THREE.LineCurve(this.position, this.position);
@@ -32,18 +35,20 @@ export default class PhysicsBody extends THREE.Mesh {
             this.position.addScaledVector(direction, -.5 * overlap);
             otherBody.position.addScaledVector(direction, .5 * overlap);
 
-            //update velocity
-            //get magnitude of velocity on collision normal, scale direction by it
-            let thisVCopy = new THREE.Vector3(...this.velocity);
-            let thisVNormal = direction.clone().multiplyScalar(thisVCopy.dot(direction));
-            let otherVCopy = new THREE.Vector3(...otherBody.velocity);
-            let otherVNormal = direction.clone().multiplyScalar(otherVCopy.dot(direction));
-            
-            //substract scaled normal component
-            thisVCopy.sub(thisVNormal.clone().multiplyScalar(2));
-            otherVCopy.sub(otherVNormal.clone().multiplyScalar(2));
-            this.velocity = [thisVCopy.x, thisVCopy.y, thisVCopy.z];
-            otherBody.velocity = [otherVCopy.x, otherVCopy.y, otherVCopy.z];
+            //momentum - inelastic with impulse correction
+            let thisVel = new THREE.Vector3(...this.velocity);
+            let otherVel = new THREE.Vector3(...otherBody.velocity);
+            let thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
+            let otherNewVel = otherVel.clone().multiplyScalar(otherBody.mass).add(thisVel.clone().multiplyScalar(this.mass)).divideScalar(this.mass + otherBody.mass);
+            let rel = thisVel.clone().sub(otherVel).dot(direction);
+            if (rel > 0){
+                let invSum = 1 / (this.mass + otherBody.mass);
+                thisNewVel.addScaledVector(direction, -(1 + bounceEffect) * (otherBody.mass * invSum) * rel);
+                otherNewVel.addScaledVector(direction,  +(1 + bounceEffect) * (this.mass * invSum) * rel);
+            }
+
+            this.velocity[0] = thisNewVel.x; this.velocity[1] = thisNewVel.y; this.velocity[2] = thisNewVel.z;
+            otherBody.velocity[0] = otherNewVel.x; otherBody.velocity[1] = otherNewVel.y; otherBody.velocity[2] = otherNewVel.z;
         }
     }
 
@@ -65,7 +70,7 @@ export default class PhysicsBody extends THREE.Mesh {
 
             const geometry = new THREE.BufferGeometry().setFromPoints(this.positions);
             if (!this.trailLine) {
-                const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+                const material = new THREE.LineBasicMaterial({ color: this.trailColor });
                 this.trailLine = new THREE.Line(geometry, material);
                 this.root.add(this.trailLine);
             } else {
