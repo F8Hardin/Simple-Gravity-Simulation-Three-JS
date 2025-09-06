@@ -15,20 +15,25 @@
       <input type="range" min="1" max="1000" value="50" class="slider" id="bodyCountSlider">
       <input type="checkbox" id="showTrails" onclick="toggleTrails()">
       <p id="spawnRange"></p>
-      <input type="range" min="1" max="500" value="50" class="slider" id="spawnRangeSlider">
+      <input type="range" min="1" max="15" value="50" class="slider" id="spawnRangeSlider">
+      <p id="bounceEffect"></p>
+      <input type="range" min="0" max="1" value="0" step=".01" class="slider" id="bounceEffectSlider">
       <p  onclick="restartSim()"> Click here to refresh </p>
       <!--Add some controls plus some data to display like velocity XYZ, angular velocity, momentum, acceleration. Maybe add different animation functions to demonstrate different algorithms.-->
       <!--Maybe add config options - using the body count with controls for particle system play, and one is the default milky way model setup to detail-->
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
-      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails, setSpawnRange, maxSpawnRange } from "/main.js";
+      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails, setSpawnRange, maxSpawnRange, setBounceEffect, bounceEffect } from "/main.js";
+      import AUModifier from './Bodies/physicsBody.js';
 
       let bodyCountSlider = document.getElementById("bodyCountSlider");
       bodyCountSlider.value = bodyCount;
       let showTrailsBox = document.getElementById("showTrails");
       let spawnRangeSlider = document.getElementById("spawnRangeSlider");
       spawnRangeSlider.value = maxSpawnRange;
+      let bounceEffectSlider = document.getElementById("bounceEffectSlider");
+      bounceEffectSlider.value = bounceEffect;
 
       console.log(showTrails);
       showTrailsBox.checked = showTrails;
@@ -41,7 +46,8 @@
       function updateSimData() {
         document.getElementById("frameRate").textContent = "FPS: " + getFramerate();
         document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountSlider.value;
-        document.getElementById("spawnRange").textContent = "Spawn Range: " + spawnRangeSlider.value;
+        document.getElementById("spawnRange").textContent = "Spawn Range (AU): " + spawnRangeSlider.value;
+        document.getElementById("bounceEffect").textContent = "Bounce Effect: " + bounceEffectSlider.value;
       }
       setInterval(updateSimData, 100);
 
@@ -61,6 +67,11 @@
         init();
       }
       spawnRangeSlider.addEventListener('mouseup', updateSpawnRange);
+
+      function updateBounceEffect() {
+        setBounceEffect(bounceEffectSlider.value);
+      }
+      bounceEffectSlider.addEventListener('mouseup', updateBounceEffect);
     </script>
   </body>
 </html>

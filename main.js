@@ -3,8 +3,8 @@ import PhysicsBody from './Bodies/physicsBody.js'
 import Star from './Bodies/star.js'
 import { randInt } from 'three/src/math/MathUtils.js';
 
-let scene, camera, renderer, pivot, sun, physBodies = []; export let maxSpawnRange = 100;
-let scrollModifier = .1; let gravConstant = 100; export let bodyCount = 20; export let showTrails = true; let trailLengths = 1000;
+let scene, camera, renderer, pivot, sun, earth, physBodies = []; export let maxSpawnRange = 1; export let bounceEffect = 0;
+let scrollModifier = .1; let gravConstant = 10; export let bodyCount = 1; export let showTrails = false; let trailLengths = 1000;
 let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraDefault = 200;
 
 let frameRate = 0;
@@ -25,13 +25,16 @@ export function init() {
   pivot = new THREE.Group();
 
   //sun = new Star({mass: 100, position : [20, 0, 0], showTrail: showTrails, geometry : new THREE.SphereGeometry(2, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
-  sun = new Star({ root: pivot, mass: 10, trailColor: "#f2df07", showTrail: showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(1, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  sun = new Star({ root: pivot, mass: 1, bounceEffect: bounceEffect, trailColor: "#f2df07", showTrail: showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(5, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
   physBodies.push(sun);
+
+  // earth = new PhysicsBody({ root: pivot, mass: 3.003 * 1e-6, bounceEffect: bounceEffect, trailColor: "#4287f5", showTrail: showTrails, trailLength: trailLengths, position: [1, 0, 0], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: "#4287f5" }) })
+  // physBodies.push(earth);
   
   for (let i = 0; i < bodyCount; i++) {
     let color = new THREE.Color( 0xffffff );
     color.setHex( Math.random() * 0xffffff );
-    physBodies.push(new PhysicsBody({ root: pivot, mass: 10, trailColor: color, showTrail: showTrails, trailLength: trailLengths, position: [randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+    physBodies.push(new PhysicsBody({ root: pivot, mass: 1, bounceEffect: bounceEffect, trailColor: color, showTrail: showTrails, trailLength: trailLengths, position: [randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange), randInt(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(5, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
   }
 
   for (let b of physBodies) {
@@ -58,9 +61,9 @@ function animate() {
     for (let j = i + 1; j < physBodies.length; j++) {
       let body2 = physBodies[j];
 
-      let dx = body2.position.x - body1.position.x;
-      let dy = body2.position.y - body1.position.y;
-      let dz = body2.position.z - body1.position.z;
+      let dx = body2.physPos[0] - body1.physPos[0];
+      let dy = body2.physPos[1] - body1.physPos[1];
+      let dz = body2.physPos[2] - body1.physPos[2];
 
       let distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
       distance = Math.max(distance, body1.radius + body2.radius);
@@ -80,12 +83,14 @@ function animate() {
       body2.acceleration[1] += body2AccelerationY;
       body2.acceleration[2] += body2AccelerationZ;
 
+      //maybe need to check collision first, before accelerating into an object? I end up pushing massive objects. 
       body1.checkCollision(body2);
     }
   }
 
   for (let b of physBodies){
     b.updatePhysics(timeSinceLastFrame);
+    //console.log(b.position);
   }
 
   renderer.render( scene, camera );
@@ -176,4 +181,11 @@ export function setShowTrail(showValue){
 
 export function setSpawnRange(rangeValue) {
   maxSpawnRange = rangeValue;
+}
+
+export function setBounceEffect(bounceValue) {
+  bounceEffect = bounceValue;
+  for (let b of physBodies){
+    b.setBounceEffect(bounceValue);
+  }
 }
