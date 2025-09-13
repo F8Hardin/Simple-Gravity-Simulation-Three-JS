@@ -31,16 +31,16 @@ export default class OctTree {
 
     buildTree(someTreeNode) {
         if (someTreeNode == this.rootNode){
-            this.clearBoxes(); //clear before rebuilding
-            if (this.visibleTree)
+            if (this.visibleTree){
+                this.clearBoxes(); //clear before rebuilding
                 this.drawNodeBox(this.rootNode, "red", 10);
+            }
             this.rootNode.children = [];
             this.rootNode.physBodies = this.physBodies;
         }
 
         if (someTreeNode.physBodies.length > this.maxBodyCount && someTreeNode.depth < this.maxDepth && someTreeNode.children.length === 0){ //too many items and not at max subnodes
             //create 8 children
-            console.log("Creating children at depth " + someTreeNode.depth);
             someTreeNode.children.push(new treeNode({
                 depth: someTreeNode.depth + 1,
                 position: [someTreeNode.position[0] + someTreeNode.length / 4, someTreeNode.position[1] + someTreeNode.length / 4, someTreeNode.position[2] + someTreeNode.length / 4],
@@ -118,18 +118,22 @@ export default class OctTree {
                 someTreeNode.children[k].physBodies = childBuckets[k];
                 if (someTreeNode.children[k].physBodies.length > 0){
                     this.buildTree(someTreeNode.children[k]);
-                } else {
-                    console.log("Skipping extending tree: " + someTreeNode.children[k].physBodies.length);
                 }
             }
-        } else {
-            console.log("Can't extend tree further. Depth: " + someTreeNode.depth + " MaxDepth: " + this.maxDepth + " BodyCount: " + someTreeNode.physBodies.length + " MaxBodyCount: " + this.maxBodyCount);
         }
     }
 
     clearBoxes() {
         for (const m of this.debugBoxes) {
             this.scene.remove(m);
+            if (m.geometry) m.geometry.dispose();
+            if (m.material) {
+                if (Array.isArray(m.material)) {
+                    m.material.forEach(mat => mat.dispose && mat.dispose());
+                } else {
+                    m.material.dispose && m.material.dispose();
+                }
+            }
         }
         this.debugBoxes.length = 0;
     }
