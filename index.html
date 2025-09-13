@@ -9,22 +9,23 @@
     <link rel="stylesheet" href="index.css">
   </head>
   <body>
-    <div class="ControlAccessButton">
+    <div class="ControlAccessPanel">
       <p id="frameRate"></p>
       <p id="bodyCount"></p>
       <input type="range" min="1" max="1000" value="50" class="slider" id="bodyCountSlider">
       <input type="checkbox" id="showTrails" onclick="toggleTrails()">
       <p id="spawnRange"></p>
-      <input type="range" min="1" max="15" value="50" class="slider" id="spawnRangeSlider">
+      <input type="range" min=".5" max="15" value="50" class="slider" id="spawnRangeSlider">
       <p id="bounceEffect"></p>
       <input type="range" min="0" max="1" value="0" step=".01" class="slider" id="bounceEffectSlider">
+      <button  onclick="swapDetectionMode()"> Swap Detection Mode </button>
       <p  onclick="restartSim()"> Click here to refresh </p>
       <!--Add some controls plus some data to display like velocity XYZ, angular velocity, momentum, acceleration. Maybe add different animation functions to demonstrate different algorithms.-->
       <!--Maybe add config options - using the body count with controls for particle system play, and one is the default milky way model setup to detail-->
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
-      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails, setSpawnRange, maxSpawnRange, setBounceEffect, bounceEffect } from "/main.js";
+      import { init, getFramerate, bodyCount, setBodyCount, setShowTrail, showTrails, setSpawnRange, maxSpawnRange, setBounceEffect, bounceEffect, swapAnimationLoop } from "/main.js";
       import AUModifier from './Bodies/physicsBody.js';
 
       let bodyCountSlider = document.getElementById("bodyCountSlider");
@@ -72,6 +73,12 @@
         setBounceEffect(bounceEffectSlider.value);
       }
       bounceEffectSlider.addEventListener('mouseup', updateBounceEffect);
+
+      function swapDetectionMode() {
+        swapAnimationLoop();
+        restartSim();
+      }
+      window.swapDetectionMode = swapDetectionMode;
     </script>
   </body>
 </html>

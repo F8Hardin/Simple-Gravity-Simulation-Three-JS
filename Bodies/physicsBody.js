@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-//using metric system
+
 export const AUModifer = 100;
 
 export default class PhysicsBody extends THREE.Mesh {
@@ -120,10 +120,12 @@ export default class PhysicsBody extends THREE.Mesh {
 
         if (!showValue){
             this.positions = [];
-            this.trailLine.geometry.dispose();
-            this.trailLine.material.dispose();
-            this.root.remove(this.trailLine);
-            this.trailLine = null;
+            if (this.trailLine) {
+                this.trailLine.geometry.dispose();
+                this.trailLine.material.dispose();
+                this.root.remove(this.trailLine);
+                this.trailLine = null;
+            }
         }
     }
 

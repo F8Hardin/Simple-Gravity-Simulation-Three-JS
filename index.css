@@ -1,5 +1,7 @@
-.ControlAccessButton {
+.ControlAccessPanel {
     position: fixed;
+    display: flex;
+    flex-direction: column;
     top: 1%;
     left: 1%;
     box-sizing: border-box;
