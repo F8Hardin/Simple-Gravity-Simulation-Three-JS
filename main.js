@@ -358,3 +358,6 @@ window.addEventListener('keydown', (e) => {
     gravSimScene.pivot.rotation.set(0, 0, 0);
   }
 });
+window.addEventListener('resize', () => {
+  gravSimScene.resize();
+});
