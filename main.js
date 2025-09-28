@@ -308,6 +308,20 @@ class SimulationScene {
       b.setBounceEffect(bounceValue);
     }
   }
+
+  swapAnimationLoop(selected){
+    switch (selected) {
+      case "octTreeRedraw":
+        this.animationLoop = this.octTreeAnimateRedraw;
+        break;
+      case "bruteForce":
+        this.animationLoop = this.animate;
+        break;
+      case "octTreeStatic":
+        this.animationLoop = this.octTreeAnimateRedraw; //for now
+        break;
+    }
+  }
 }
 
 export const gravSimScene = new SimulationScene();
