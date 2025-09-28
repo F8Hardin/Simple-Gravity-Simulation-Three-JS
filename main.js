@@ -25,7 +25,7 @@ export function init() {
   cleanUp();
   scene = new THREE.Scene();
   scene.fog = null;
-  camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 10000 );
+  camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100000 );
   camera.position.z = cameraScroll;
 
   pivot = new THREE.Group();
