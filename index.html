@@ -44,6 +44,7 @@
       let bodyCountSlider = document.getElementById("bodyCountSlider");
       bodyCountSlider.value = gravSimScene.bodyCount;
       let showTrailsBox = document.getElementById("showTrails");
+      showTrailsBox.checked = gravSimScene.showTrail;
       let spawnRangeSlider = document.getElementById("spawnRangeSlider");
       spawnRangeSlider.value = gravSimScene.maxSpawnRange;
       let bounceEffectSlider = document.getElementById("bounceEffectSlider");
@@ -54,8 +55,9 @@
       speedModifierSlider.value = gravSimScene.speedModifier;
       let collisionTreeSlider = document.getElementById("collisionTreeDepth");
       collisionTreeSlider.value = gravSimScene.maxDepth;
+      document.getElementById("animationLoops").value = "octTreeRedraw";
+      gravSimScene.swapAnimationLoop("octTreeRedraw");
 
-      showTrailsBox.checked = gravSimScene.showTrail;
 
       function restartSim() {
         gravSimScene.init();
