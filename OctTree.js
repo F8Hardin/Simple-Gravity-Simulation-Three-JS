@@ -3,6 +3,8 @@ import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 
+let forceMaxChildren = false;
+
 
 class treeNode {
     constructor({physBodies = [], children = [], depth = 0, position = [0, 0, 0], length}) {
@@ -29,17 +31,23 @@ export default class OctTree {
         this.buildTree(this.rootNode);
     }
 
-    buildTree(someTreeNode) {
+    buildTree(someTreeNode, position) {
         if (someTreeNode == this.rootNode){
+            this.clearBoxes();
+
             if (this.visibleTree){
-                this.clearBoxes(); //clear before rebuilding
                 this.drawNodeBox(this.rootNode, "red", 10);
             }
+
+            if (position){
+                this.rootNode.position = position;
+            }
+
             this.rootNode.children = [];
             this.rootNode.physBodies = this.physBodies;
         }
 
-        if (someTreeNode.physBodies.length > this.maxBodyCount && someTreeNode.depth < this.maxDepth && someTreeNode.children.length === 0){ //too many items and not at max subnodes
+        if ((forceMaxChildren && someTreeNode.depth < this.maxDepth) || (someTreeNode.physBodies.length > this.maxBodyCount && someTreeNode.depth < this.maxDepth && someTreeNode.children.length === 0)){ //too many items and not at max subnodes
             //create 8 children
             someTreeNode.children.push(new treeNode({
                 depth: someTreeNode.depth + 1,
@@ -99,7 +107,6 @@ export default class OctTree {
                     let distanceY = Math.abs(someTreeNode.physBodies[i].position.y - someTreeNode.children[j].position[1]) + someTreeNode.physBodies[i].radius;
                     let distanceZ = Math.abs(someTreeNode.physBodies[i].position.z - someTreeNode.children[j].position[2]) + someTreeNode.physBodies[i].radius;
                     
-                    console.log("Pos: ", someTreeNode.physBodies[i].position.x, someTreeNode.physBodies[i].position.y, someTreeNode.physBodies[i].position.z);
                     let half = someTreeNode.children[j].length / 2
                     if (distanceX <= half && distanceY <= half && distanceZ <= half){
                         childBuckets[j].push(someTreeNode.physBodies[i]);
@@ -116,7 +123,7 @@ export default class OctTree {
             someTreeNode.physBodies = remaining;
             for (let k = 0; k < someTreeNode.children.length; k++){
                 someTreeNode.children[k].physBodies = childBuckets[k];
-                if (someTreeNode.children[k].physBodies.length > 0){
+                if (someTreeNode.children[k].physBodies.length > 0 || forceMaxChildren){
                     this.buildTree(someTreeNode.children[k]);
                 }
             }
