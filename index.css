@@ -13,4 +13,9 @@
     color: #2b2b2b;
     justify-content: center;
     align-items: center;
+    width: 20%;
+}
+
+.slider{
+    width: 90%;
 }

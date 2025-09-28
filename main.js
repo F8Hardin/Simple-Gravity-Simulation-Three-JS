@@ -3,32 +3,37 @@ import PhysicsBody, { AUModifer } from './Bodies/physicsBody.js'
 import Star from './Bodies/star.js'
 import { randFloat, randInt } from 'three/src/math/MathUtils.js';
 import OctTree from './OctTree.js';
-import { max } from 'three/src/nodes/TSL.js';
 
 let scene, camera, renderer, pivot, sun, earth, physBodies = []; export let maxSpawnRange = 1; export let bounceEffect = 0;
-let scrollModifier = .5; let gravConstant = 1; export let bodyCount = 50; export let showTrails = false; let trailLengths = 250;
-let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraDefault = 500; //maxSpawnRange * AUModifer * 30 * 1.5;
+let scrollModifier = .5; let gravConstant = 1; export let bodyCount = 3; export let showTrails = false; let trailLengths = 250;
+let spinCamera = false; let lastX = 0; let lastY = 0; let rotateModifier = .01; let cameraScroll = 500; //maxSpawnRange * AUModifer * 30 * 1.5;
 let massMin = 1;
 let massMax = 100;
-let animationLoop = octTreeAnimate; let maxDepth = 10; let rootRange = 500; let maxBodyCount = 5;
+let sphereSize = 10;
+let animationLoop = octTreeAnimateRedraw; export let maxDepth = 1; let rootRange = 1.25 * maxSpawnRange * AUModifer; let maxBodyCount = 3;
 let frameRate = 0;
 let clock = new THREE.Clock();
+export let speedModifier = 1;
 
 let frameCount = 0;
+let updateOctTreeEveryFrames = 1;
 
-let octTree = null;
+export let octTree = null;
+let treeVisibility = true;
 
 export function init() {
   cleanUp();
   scene = new THREE.Scene();
+  scene.fog = null;
   camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 10000 );
-  camera.position.z = cameraDefault;
+  camera.position.z = cameraScroll;
 
   pivot = new THREE.Group();
 
   //sun = new Star({mass: 100, position : [20, 0, 0], showTrail: showTrails, geometry : new THREE.SphereGeometry(2, 32, 16), pointLight : new THREE.PointLight("#f2df07", 1000, 0, 1),  material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
-  sun = new Star({ root: pivot, mass: randFloat(massMin, massMax), bounceEffect: bounceEffect, trailColor: "#f2df07", showTrail: showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(5, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+  sun = new Star({ root: pivot, mass: randFloat(massMin, massMax), bounceEffect: bounceEffect, trailColor: "#f2df07", showTrail: showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(sphereSize, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
   physBodies.push(sun);
+
 
   // earth = new PhysicsBody({ root: pivot, mass: 3.003 * 1e-6, bounceEffect: bounceEffect, trailColor: "#4287f5", showTrail: showTrails, trailLength: trailLengths, position: [1, 0, 0], geometry: new THREE.SphereGeometry(1, 32, 16), material: new THREE.MeshStandardMaterial({ color: "#4287f5" }) })
   // physBodies.push(earth);
@@ -36,7 +41,7 @@ export function init() {
   for (let i = 0; i < bodyCount; i++) {
     let color = new THREE.Color( 0xffffff );
     color.setHex( Math.random() * 0xffffff );
-    physBodies.push(new PhysicsBody({ root: pivot, mass: randFloat(massMin, massMax), bounceEffect: bounceEffect, trailColor: color, showTrail: showTrails, trailLength: trailLengths, position: [randFloat(-maxSpawnRange, maxSpawnRange), randFloat(-maxSpawnRange, maxSpawnRange), randFloat(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(5, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+    physBodies.push(new PhysicsBody({ root: pivot, mass: randFloat(massMin, massMax), bounceEffect: bounceEffect, trailColor: color, showTrail: showTrails, trailLength: trailLengths, position: [randFloat(-maxSpawnRange, maxSpawnRange), randFloat(-maxSpawnRange, maxSpawnRange), randFloat(-maxSpawnRange, maxSpawnRange)], geometry: new THREE.SphereGeometry(sphereSize, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
   }
 
   for (let b of physBodies) {
@@ -48,8 +53,8 @@ export function init() {
   renderer = new THREE.WebGLRenderer();
   renderer.setSize( window.innerWidth, window.innerHeight );
   switch ( animationLoop ) {
-    case octTreeAnimate:
-      octTree = new OctTree({visibleTree: false, physBodies: physBodies, maxBodyCount: maxBodyCount, maxDepth: maxDepth, rootRange: maxSpawnRange * AUModifer * 10, scene: pivot});
+    case octTreeAnimateRedraw:
+      octTree = new OctTree({visibleTree: treeVisibility, physBodies: physBodies, maxBodyCount: maxBodyCount, maxDepth: maxDepth, rootRange: 1.25 * maxSpawnRange * AUModifer, scene: pivot});
   }
   renderer.setAnimationLoop( animationLoop );
   document.body.appendChild( renderer.domElement );
@@ -80,35 +85,49 @@ function animate() {
   }
 
   for (let b of physBodies){
-    b.updatePhysics(timeSinceLastFrame);
-    //console.log(b.position);
+    b.updatePhysics(timeSinceLastFrame * speedModifier);
   }
 
+  camera.position.copy(sun.position).add(new THREE.Vector3(0, 0, cameraScroll));
   renderer.render( scene, camera );
 }
 
-function octTreeAnimate() {
+function octTreeAnimateRedraw() { //redraws tree every x frames
   let clockDelta = clock.getDelta();
   let timeSinceLastFrame = Math.min(clockDelta, 1/30);
   frameRate = 1 / clockDelta;
   frameCount += 1;
 
   resetAcceleration();
-  if (frameCount = 10){
+  if (updateOctTreeEveryFrames == frameCount){
     frameCount = 0;
-    octTree.buildTree(octTree.rootNode);
+    octTree.buildTree(octTree.rootNode, [sun.position.x, sun.position.y, sun.position.z]);
   }
   traverseOctTree(octTree.rootNode);
 
   for (let b of physBodies){
-    b.updatePhysics(timeSinceLastFrame);
-    //console.log(b.position);
+    b.updatePhysics(timeSinceLastFrame * speedModifier);
   }
 
+  camera.position.copy(sun.position).add(new THREE.Vector3(0, 0, cameraScroll));
   renderer.render( scene, camera );
 }
 
-function traverseOctTree(currentNode, nodeRemainingBodies = []){ //review for duplicates
+function octTreeAnimateStatic(){ //static tree and updated bodies in nodes
+  let clockDelta = clock.getDelta();
+  let timeSinceLastFrame = Math.min(clockDelta, 1/30);
+  frameRate = 1 / clockDelta;
+  frameCount += 1;
+  resetAcceleration();
+
+  //new logic here
+
+  camera.position.copy(sun.position).add(new THREE.Vector3(0, 0, cameraScroll));
+  renderer.render( scene, camera );
+}
+
+function traverseOctTree(currentNode, nodeRemainingBodies = [], allNodesThisLevel = []){ //review for duplicates
+  //compare current nodes bodies to its own bodies
   for (let j = 0; j < currentNode.physBodies.length; j++){
     let body1 = currentNode.physBodies[j];
     for (let k = j + 1; k < currentNode.physBodies.length; k++){
@@ -117,7 +136,7 @@ function traverseOctTree(currentNode, nodeRemainingBodies = []){ //review for du
     }
   }
 
-  if (nodeRemainingBodies){ //compare ancestors remaining with children
+  if (nodeRemainingBodies.length > 0){ //compare parents remaining with children
     for (let j = 0; j < nodeRemainingBodies.length; j++){
       let body1 = nodeRemainingBodies[j];
       for (let k = 0; k < currentNode.physBodies.length; k++){
@@ -185,7 +204,7 @@ function resize() {
 
 window.addEventListener('wheel', (e) => {
   let scrollY = e.deltaY * scrollModifier;
-  camera.position.z += scrollY;
+  cameraScroll += scrollY;
 });
 
 window.addEventListener('mousedown', (e) => { spinCamera = true; lastX = e.clientX; lastY = e.clientY});
@@ -201,11 +220,13 @@ window.addEventListener('mousemove', (e) => {
 
     pivot.rotation.y += (deltaX * rotateModifier);
     pivot.rotation.z += (deltaY * rotateModifier);
+
+    //camera.lookAt(sun);
   }
 });
 
 window.addEventListener('keydown', (e) => {
-  if (e.key === 'r'){
+  if (e.key.toLowerCase() === 'r'){
     pivot.rotation.set(0, 0, 0);
   }
 });
@@ -271,10 +292,37 @@ export function setBounceEffect(bounceValue) {
   }
 }
 
-export function swapAnimationLoop(){
-  if (animationLoop == octTreeAnimate){
-    animationLoop = animate;
-  } else {
-    animationLoop = octTreeAnimate;
+export function swapAnimationLoop(selected){
+  switch (selected) {
+    case "octTreeRedraw":
+      animationLoop = octTreeAnimateRedraw;
+      break;
+    case "bruteForce":
+      animationLoop = animate;
+      break;
+    case "octTreeStatic":
+      animationLoop = octTreeAnimateRedraw; //for now
+      break;
   }
+}
+
+export function toggleDrawOctTree(){
+  octTree.visibleTree = !octTree.visibleTree;
+  treeVisibility = octTree.visibleTree;
+  return octTree.visibleTree;
+}
+
+export function setTrailLength(newLength){
+  for (let b of physBodies){
+    b.trailLength = newLength;
+  }
+}
+
+export function setSpeedModifier(newValue){
+  speedModifier = newValue;
+}
+
+export function setMaxDepth(newValue){
+  maxDepth = newValue;
+  octTree.maxDepth = maxDepth;
 }
