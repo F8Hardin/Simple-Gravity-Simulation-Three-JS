@@ -127,9 +127,27 @@ function traverseOctTree(currentNode, nodeRemainingBodies = []){ //review for du
     }
   }
 
-  let newNodeRemainingBodies = nodeRemainingBodies.length ? nodeRemainingBodies.concat(currentNode.physBodies) : currentNode.physBodies;
+  //traverse any children
+  let newNodeRemainingBodies = nodeRemainingBodies.length ? nodeRemainingBodies.concat(currentNode.physBodies) : currentNode.physBodies.slice();
   for (let i = 0; i < currentNode.children.length; i++){
-    traverseOctTree(currentNode.children[i], newNodeRemainingBodies);
+    traverseOctTree(currentNode.children[i], newNodeRemainingBodies, currentNode.children);
+  }
+
+  //compare to current nodes bodies neighboring nodes bodies
+  if (allNodesThisLevel.length > 0){
+    let currentNodeIndex = allNodesThisLevel.indexOf(currentNode);
+
+    if (currentNodeIndex != -1){
+      for (let i = currentNodeIndex + 1; i < allNodesThisLevel.length; i++){
+        for (let j = 0; j < allNodesThisLevel[i].physBodies.length; j++){
+          let body1 = allNodesThisLevel[i].physBodies[j];
+          for (let k = 0; k < currentNode.physBodies.length; k++){
+            let body2 = currentNode.physBodies[k];
+            checkCollisionAndGravity(body1, body2);
+          }
+        }
+      }
+    }
   }
 }
 
