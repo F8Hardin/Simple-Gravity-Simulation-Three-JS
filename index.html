@@ -12,7 +12,7 @@
     <div class="ControlAccessPanel">
       <p id="frameRate"></p>
       <p id="bodyCount"></p>
-      <input type="range" min="1" max="2500" value="50" class="slider" id="bodyCountSlider">
+      <input type="range" min="0" max="5000" value="50" class="slider" id="bodyCountSlider">
       <p id="currentSpeed"></p>
       <input type="range" min="0" max="3" value="1" step=".01" class="slider" id="speedModifierSlider">
       Trail Length:
@@ -38,87 +38,87 @@
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
-      import { setMaxDepth, maxDepth, init, getFramerate, bodyCount, setBodyCount, speedModifier, setSpeedModifier, toggleDrawOctTree, octTree, setTrailLength, setShowTrail, showTrails, setSpawnRange, maxSpawnRange, setBounceEffect, bounceEffect, swapAnimationLoop } from "/main.js";
+      import { gravSimScene } from "/main.js";
       import AUModifier from './Bodies/physicsBody.js';
 
       let bodyCountSlider = document.getElementById("bodyCountSlider");
-      bodyCountSlider.value = bodyCount;
+      bodyCountSlider.value = gravSimScene.bodyCount;
       let showTrailsBox = document.getElementById("showTrails");
       let spawnRangeSlider = document.getElementById("spawnRangeSlider");
-      spawnRangeSlider.value = maxSpawnRange;
+      spawnRangeSlider.value = gravSimScene.maxSpawnRange;
       let bounceEffectSlider = document.getElementById("bounceEffectSlider");
       bounceEffectSlider.value = bounceEffect;
-      document.getElementById("showOctTree").checked = octTree.visibleTree;
+      document.getElementById("showOctTree").checked = gravSimScene.octTree.visibleTree;
       let trailSlider = document.getElementById("trailSlider");
       let speedModifierSlider = document.getElementById("speedModifierSlider");
-      speedModifierSlider.value = speedModifier;
+      speedModifierSlider.value = gravSimScene.speedModifier;
       let collisionTreeSlider = document.getElementById("collisionTreeDepth");
-      collisionTreeSlider.value = maxDepth;
+      collisionTreeSlider.value = gravSimScene.maxDepth;
 
-      showTrailsBox.checked = showTrails;
+      showTrailsBox.checked = gravSimScene.showTrail;
 
       function restartSim() {
-        init();
+        gravSimScene.init();
       }
       window.restartSim = restartSim;
 
       function updateSimData() {
-        document.getElementById("frameRate").textContent = "FPS: " + getFramerate();
+        document.getElementById("frameRate").textContent = "FPS: " + gravSimScene.getFramerate();
         document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountSlider.value;
         document.getElementById("spawnRange").textContent = "Spawn Range (AU): " + spawnRangeSlider.value;
         document.getElementById("bounceEffect").textContent = "Bounce Effect: " + bounceEffectSlider.value;
-        document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + speedModifier;
-        document.getElementById("collisionTreeDepthText"). textContent = "Collision Tree Max Depth: " + maxDepth;
+        document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
+        document.getElementById("collisionTreeDepthText"). textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
       }
       setInterval(updateSimData, 100);
 
       function updateBodyCount() {
-        setBodyCount(bodyCountSlider.value - 1);
-        init();
+        gravSimScene.setBodyCount(bodyCountSlider.value);
+        restartSim();
       }
       bodyCountSlider.addEventListener('mouseup', updateBodyCount);
 
       function toggleTrails(){
-        setShowTrail(showTrailsBox.checked)
+        gravSimScene.setShowTrail(showTrailsBox.checked)
       }
       window.toggleTrails = toggleTrails;
 
       function updateSpawnRange() {
-        setSpawnRange(spawnRangeSlider.value);
-        init();
+        gravSimScene.setSpawnRange(spawnRangeSlider.value);
+        restartSim();
       }
       spawnRangeSlider.addEventListener('mouseup', updateSpawnRange);
 
       function updateBounceEffect() {
-        setBounceEffect(bounceEffectSlider.value);
+        gravSimScene.setBounceEffect(bounceEffectSlider.value);
       }
       bounceEffectSlider.addEventListener('mouseup', updateBounceEffect);
 
       function swapAnimationLoops(event) {
         let selected = event.target.value;
 
-        swapAnimationLoop(selected);
+        gravSimScene.swapAnimationLoop(selected);
         restartSim();
       }
       document.getElementById("animationLoops").addEventListener("change", swapAnimationLoops);
 
       function toggleOctTree() {
-        toggleDrawOctTree();
+        gravSimScene.toggleDrawOctTree();
       }
       window.toggleOctTree = toggleOctTree;
 
       function setBodyTrailLength(){
-        setTrailLength(trailSlider.value);
+        gravSimScene.setTrailLength(trailSlider.value);
       }
       trailSlider.addEventListener('mouseup', setBodyTrailLength);
 
       function updateSpeedModifier(){
-        setSpeedModifier(speedModifierSlider.value);
+        gravSimScene.setSpeedModifier(speedModifierSlider.value);
       }
       speedModifierSlider.addEventListener('mousemove', updateSpeedModifier);
 
       function updateMaxDepth(){
-        setMaxDepth(collisionTreeSlider.value);
+        gravSimScene.setMaxDepth(collisionTreeSlider.value);
       }
       collisionTreeSlider.addEventListener('mousemove', updateMaxDepth);
     </script>
