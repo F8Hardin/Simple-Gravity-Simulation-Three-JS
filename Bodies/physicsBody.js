@@ -99,8 +99,9 @@ export default class PhysicsBody extends THREE.Mesh {
             let wp = new THREE.Vector3();
             this.getWorldPosition(wp);    
             this.positions.push(this.root.worldToLocal(wp.clone()));
-            if (this.positions.length > this.trailLength) {
-                this.positions.shift();
+            let overflow = this.positions.length - this.trailLength;
+            if (overflow > 0) {
+            this.positions.splice(0, overflow);
             }
 
             const geometry = new THREE.BufferGeometry().setFromPoints(this.positions);
@@ -131,7 +132,6 @@ export default class PhysicsBody extends THREE.Mesh {
 
     setBounceEffect(bounceValue){
         this.bounceEffect = bounceValue;
-        console.log("Updating bounce: " + this.bounceEffect);
     }
 }
 
