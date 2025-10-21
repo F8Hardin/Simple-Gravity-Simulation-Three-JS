@@ -9,50 +9,56 @@
     <link rel="stylesheet" href="index.css">
   </head>
   <body>
-    <div class="ControlAccessPanel">
-      <div class="controlInfoPanel">
-        <p id="frameRate"></p>
-      </div>
-      <p id="currentSpeed"></p>
-      <input type="range" min="0" max="3" value="1" step=".01" class="slider" id="speedModifierSlider">
+    <div class="FullAccessPanel">
       <div>
-        Trail Length: 
-        <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
+        Hide All: 
+        <input type="checkbox" id="hideAllCheckbox" onclick="toggleHidingAll()">
       </div>
-      <div>
-        Trail visibilty: 
-        <input type="checkbox" id="showTrails" onclick="toggleTrails()">
-      </div>
-      <div class="collisionTreeControls">
-        Collision Tree Visibility: 
-        <input type="checkbox" id="showOctTree" onclick="toggleOctTree()">
-        <p id="collisionTreeDepthText"></p>
-        <input type="range" min="0" max="8" value="50" class="slider" id="collisionTreeDepth">
-      </div> 
-      <p id="bounceEffect"></p>
-      <input type="range" min="0" max="2" value="0" step=".01" class="slider" id="bounceEffectSlider">
-      <select id="animationLoops">
-        <option value="octTreeRedraw">OctTree Redraw</option>
-        <option value="bruteForce">Brute Force O(n^2)</option>
-        <option value="octTreeStatic">OctTree Static</option>
-      </select>
-      <div>
-        Sandbox Controls: 
-        <input type="checkbox" id="sandBoxCheckBox" onclick="toggleSandBoxMode()">
-      </div>
-      <div>
-        Desired Scene: 
-        <select id="sceneSelection">
-          <option value="Empty Scene">Empty Scene</option>
-        </select>
-        <div id="controlSceneStart">
-          <p id="bodyCount"></p>
-          <input type="range" min="0" max="7500" value="50" class="slider" id="bodyCountSlider">
-          <p id="spawnRange"></p>
-          <input type="range" min=".5" max="50" value="1" step=".5" class="slider" id="spawnRangeSlider">
+      <div id="ControlAccessPanel">
+        <div class="controlInfoPanel">
+          <p id="frameRate"></p>
         </div>
+        <p id="currentSpeed"></p>
+        <input type="range" min="0" max="3" value="1" step=".01" class="slider" id="speedModifierSlider">
+        <div>
+          Trail Length: 
+          <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
+        </div>
+        <div>
+          Trail visibilty: 
+          <input type="checkbox" id="showTrails" onclick="toggleTrails()">
+        </div>
+        <div class="collisionTreeControls">
+          Collision Tree Visibility: 
+          <input type="checkbox" id="showOctTree" onclick="toggleOctTree()">
+          <p id="collisionTreeDepthText"></p>
+          <input type="range" min="0" max="8" value="50" class="slider" id="collisionTreeDepth">
+        </div> 
+        <p id="bounceEffect"></p>
+        <input type="range" min="0" max="2" value="0" step=".01" class="slider" id="bounceEffectSlider">
+        <select id="animationLoops">
+          <option value="octTreeRedraw">OctTree Redraw</option>
+          <option value="bruteForce">Brute Force O(n^2)</option>
+          <option value="octTreeStatic">OctTree Static</option>
+        </select>
+        <div>
+          Sandbox Controls: 
+          <input type="checkbox" id="sandBoxCheckBox" onclick="toggleSandBoxMode()">
+        </div>
+        <div>
+          Desired Scene: 
+          <select id="sceneSelection">
+            <option value="Empty Scene">Empty Scene</option>
+          </select>
+          <div id="controlSceneStart">
+            <p id="bodyCount"></p>
+            <input type="range" min="0" max="7500" value="50" class="slider" id="bodyCountSlider">
+            <p id="spawnRange"></p>
+            <input type="range" min=".5" max="50" value="1" step=".5" class="slider" id="spawnRangeSlider">
+          </div>
+        </div>
+        <p  onclick="restartSim()"> Click here to refresh </p>
       </div>
-      <p  onclick="restartSim()"> Click here to refresh </p>
     </div>
     <script type="module" src="/main.js"></script>
     <script type="module">
@@ -69,6 +75,8 @@
       let sceneDropdown = document.getElementById("sceneSelection");
       let controlSceneStart = document.getElementById("controlSceneStart");
       let sandBoxCheckBox = document.getElementById("sandBoxCheckBox");
+      let toggleHideAllBox = document.getElementById("hideAllCheckbox");
+      let controlAccessPanel = document.getElementById("ControlAccessPanel");
 
       bodyCountSlider.value = gravSimScene.bodyCount;
       showTrailsBox.checked = gravSimScene.showTrail;
@@ -165,6 +173,11 @@
         gravSimScene.toggleSandBoxMode();
       }
       window.toggleSandBoxMode = toggleSandBoxMode;
+
+      function toggleHidingAll(){
+        controlAccessPanel.style.display = toggleHideAllBox.checked ? 'none' : 'flex';
+      }
+      window.toggleHidingAll = toggleHidingAll;
     </script>
   </body>
 </html>
