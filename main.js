@@ -10,9 +10,9 @@ class SimulationScene {
     this.maxSpawnRange = 5;
     this.bounceEffect = .1;
     this.gravConstant = 1;
-    this.bodyCount = 5;
+    this.bodyCount = 50;
     this.massMin = 1;
-    this.massMax = 10;
+    this.massMax = 100;
     this.physBodySize = 10;
 
     //scene setup
@@ -24,6 +24,7 @@ class SimulationScene {
     this.focusPoint = null;
     this.physBodies = [];
     this.animationLoop = this.octTreeAnimateRedraw;
+    this.animationName = "octTreeRedraw";
     this.frameRate = 0;
     this.frameCount = 0;
     this.clock = new THREE.Clock();
@@ -31,10 +32,10 @@ class SimulationScene {
     //octTree setup
     this.maxDepth = 3;
     this.rootRange = 1.5 * this.maxSpawnRange * AUModifer;
-    this.maxBodyCount = 3;
+    this.maxBodyCount = 8;
     this.treeVisibility = false;
     this.octTree = null;
-    this.updateOctTreeEveryFrames = 5;
+    this.updateOctTreeEveryFrames = 1;
     
     //controls
     this.scrollModifier = .5;
@@ -45,6 +46,9 @@ class SimulationScene {
     this.showTrails = false;
     this.trailLengths = 250;
     this.speedModifier = 1;
+    this.sandBoxMode = false;
+    this.defaultScene = "Default Scene"
+    this.desiredScene = this.defaultScene;
 
     this.init();
   }
@@ -58,21 +62,7 @@ class SimulationScene {
 
     this.pivot = new THREE.Group();
 
-    //always the first body spawned
-    if (this.bodyCount != 0){
-      this.focusPoint = new Star({ root: this.pivot, mass: randFloat(this.massMin, this.massMax), bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(this.physBodySize, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
-      this.physBodies.push(this.focusPoint);
-    }
-    for (let i = 0; i < this.bodyCount - 1; i++) { //- 1 to include sun AKA starting focusPoint
-      let color = new THREE.Color( 0xffffff );
-      color.setHex( Math.random() * 0xffffff );
-      this.physBodies.push(new PhysicsBody({ root: this.pivot, mass: randFloat(this.massMin, this.massMax), bounceEffect: this.bounceEffect, trailColor: color, showTrail: this.showTrails, trailLength: this.trailLengths, position: [randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange)], geometry: new THREE.SphereGeometry(this.physBodySize, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
-    }
-
-    for (let b of this.physBodies) {
-      this.pivot.add(b);
-    }
-    this.scene.add(this.pivot);
+    this.sceneInit();
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setSize( window.innerWidth, window.innerHeight );
@@ -83,6 +73,30 @@ class SimulationScene {
     this.renderer.setAnimationLoop( this.animationLoop.bind(this) );
     document.body.appendChild( this.renderer.domElement );
     this.resize();
+  }
+
+  toggleSandBoxMode(){
+    this.sandBoxMode = !this.sandBoxMode;
+  }
+
+  sceneInit(){ //initializes the desired scene
+    if (this.desiredScene == "Default Scene"){ //currently not random and uses the existing settings
+      //always the first body spawned
+      if (this.bodyCount != 0){
+        this.focusPoint = new Star({ root: this.pivot, mass: randFloat(this.massMin, this.massMax), bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(this.physBodySize, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+        this.physBodies.push(this.focusPoint);
+      }
+      for (let i = 0; i < this.bodyCount - 1; i++) { //- 1 to include sun AKA starting focusPoint
+        let color = new THREE.Color( 0xffffff );
+        color.setHex( Math.random() * 0xffffff );
+        this.physBodies.push(new PhysicsBody({ root: this.pivot, mass: randFloat(this.massMin, this.massMax), bounceEffect: this.bounceEffect, trailColor: color, showTrail: this.showTrails, trailLength: this.trailLengths, position: [randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange)], geometry: new THREE.SphereGeometry(this.physBodySize, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+      }
+
+      for (let b of this.physBodies) {
+        this.pivot.add(b);
+      }
+      this.scene.add(this.pivot);
+    }
   }
 
   resize() {
@@ -167,10 +181,12 @@ class SimulationScene {
       this.frameCount = 0;
       this.focusPoint ? this.octTree.buildTree(this.octTree.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.octTree.buildTree(this.octTree.rootNode, [0, 0, 0]);
     }
-    this.traverseOctTree(this.octTree.rootNode);
 
-    for (let b of this.physBodies){
-      b.updatePhysics(timeSinceLastFrame * this.speedModifier);
+    if (this.speedModifier > 0){
+      this.traverseOctTree(this.octTree.rootNode);
+      for (let b of this.physBodies){
+        b.updatePhysics(timeSinceLastFrame * this.speedModifier);
+      }
     }
 
     if (this.focusPoint) {
@@ -312,12 +328,15 @@ class SimulationScene {
   swapAnimationLoop(selected){
     switch (selected) {
       case "octTreeRedraw":
+        this.animationName = "OctTreeRedraw";
         this.animationLoop = this.octTreeAnimateRedraw;
         break;
       case "bruteForce":
+        this.animationName = "bruteForce";
         this.animationLoop = this.animate;
         break;
       case "octTreeStatic":
+        this.animationName = "octTreeStatic";
         this.animationLoop = this.octTreeAnimateRedraw; //for now
         break;
     }
