@@ -354,6 +354,11 @@ class SimulationScene {
     this.camera.position.z = this.cameraScroll;
     this.solution.updateCameraScroll(this.cameraScroll);
   }
+
+  updateGravConstant(newValue){
+    this.gravConstant = newValue;
+    this.solution.gravConstant = newValue;
+  }
 }
 
 export const gravSimScene = new SimulationScene();

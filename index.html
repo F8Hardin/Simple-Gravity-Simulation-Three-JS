@@ -20,6 +20,8 @@
         </div>
         <p id="currentSpeed"></p>
         <input type="range" min="0" max="3" value="1" step=".01" class="slider" id="speedModifierSlider">
+        <p id="currentGravConstant"></p>
+        <input type="range" min="0" max="1" value="1" step=".01" class="slider" id="currentGravConstantSlider">
         <div>
           Trail Length: 
           <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
@@ -76,6 +78,7 @@
       let sandBoxCheckBox = document.getElementById("sandBoxCheckBox");
       let toggleHideAllBox = document.getElementById("hideAllCheckbox");
       let controlAccessPanel = document.getElementById("ControlAccessPanel");
+      let currentGravConstantSlider = document.getElementById("currentGravConstantSlider");
 
       bodyCountSlider.value = gravSimScene.bodyCount;
       showTrailsBox.checked = gravSimScene.showTrail;
@@ -88,6 +91,7 @@
       document.getElementById("showOctTree").checked = gravSimScene.treeVisibilty;
       sandBoxCheckBox.checked = gravSimScene.sandBoxMode;
       controlSceneStart.style.display = (gravSimScene.desiredScene == gravSimScene.defaultScene) ? 'flex' : 'none';
+      currentGravConstantSlider.value = gravSimScene.gravConstant;
 
 
       let option = document.createElement('option');
@@ -109,6 +113,7 @@
         document.getElementById("bounceEffect").textContent = "Bounce Effect: " + bounceEffectSlider.value;
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
         document.getElementById("collisionTreeDepthText"). textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
+        document.getElementById("currentGravConstant").textContent = "Current Gravity Constant: " + gravSimScene.gravConstant;
       }
       setInterval(updateSimData, 100);
 
@@ -181,6 +186,11 @@
         controlAccessPanel.style.display = toggleHideAllBox.checked ? 'none' : 'flex';
       }
       window.toggleHidingAll = toggleHidingAll;
+
+      function updateGravConstant(){
+        gravSimScene.updateGravConstant(currentGravConstantSlider.value);
+      }
+      currentGravConstantSlider.addEventListener('mousemove', updateGravConstant);
     </script>
   </body>
 </html>
