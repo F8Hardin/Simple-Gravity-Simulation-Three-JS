@@ -37,9 +37,8 @@
         <p id="bounceEffect"></p>
         <input type="range" min="0" max="2" value="0" step=".01" class="slider" id="bounceEffectSlider">
         <select id="animationLoops">
-          <option value="octTreeRedraw">OctTree Redraw</option>
-          <option value="bruteForce">Brute Force O(n^2)</option>
-          <option value="octTreeStatic">OctTree Static</option>
+          <option value="octTree">OctTree</option>
+          <option value="bruteForce">Brute Force</option>
         </select>
         <div>
           Sandbox Controls: 
@@ -81,11 +80,12 @@
       bodyCountSlider.value = gravSimScene.bodyCount;
       showTrailsBox.checked = gravSimScene.showTrail;
       spawnRangeSlider.value = gravSimScene.maxSpawnRange;
+      speedModifierSlider.value = gravSimScene.solution.speedModifier ?? 1;
+      gravSimScene.speedModifier = gravSimScene.solution.speedModifier ?? 1;
       bounceEffectSlider.value = bounceEffect;
       collisionTreeSlider.value = gravSimScene.maxDepth;
-      speedModifierSlider.value = gravSimScene.speedModifier;
       document.getElementById("animationLoops").value = gravSimScene.animationName;
-      document.getElementById("showOctTree").checked = gravSimScene.octTree.visibleTree;
+      document.getElementById("showOctTree").checked = gravSimScene.treeVisibilty;
       sandBoxCheckBox.checked = gravSimScene.sandBoxMode;
       controlSceneStart.style.display = (gravSimScene.desiredScene == gravSimScene.defaultScene) ? 'flex' : 'none';
 
@@ -138,7 +138,6 @@
         let selected = event.target.value;
 
         gravSimScene.swapAnimationLoop(selected);
-        restartSim();
       }
       document.getElementById("animationLoops").addEventListener("change", swapAnimationLoops);
 
@@ -171,6 +170,10 @@
 
       function toggleSandBoxMode(){
         gravSimScene.toggleSandBoxMode();
+
+        if (gravSimScene.sandBoxMode){
+          //show pop up UI for creating families of bodies
+        }
       }
       window.toggleSandBoxMode = toggleSandBoxMode;
 

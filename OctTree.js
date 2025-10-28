@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { LineSegments2 } from 'three/examples/jsm/lines/LineSegments2.js';
 import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeometry.js';
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
+import { SolutionBase } from './SolutionBase';
 
 let forceMaxChildren = false;
 
@@ -16,8 +17,9 @@ class treeNode {
     }
 }
 
-export default class OctTree {
-    constructor({physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, scene}) {
+export default class OctTree extends SolutionBase {
+    constructor({physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}) {
+        super({physBodies, scene, cameraScroll, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
         this.physBodies = physBodies;
         this.maxDepth = maxDepth;
         this.maxBodyCount = maxBodyCount;
