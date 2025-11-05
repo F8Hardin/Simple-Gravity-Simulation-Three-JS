@@ -46,37 +46,44 @@ export default class PhysicsBody extends THREE.Mesh {
             let otherVel = new THREE.Vector3(...otherBody.velocity);
             let rel = thisVel.clone().sub(otherVel).dot(direction);
 
-            //Totally inelastic on all axis
-            let thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
-            let otherNewVel = thisNewVel.clone();
+            // //Totally inelastic on all axis, hacked bounce via impulse
+            // let thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
+            // let otherNewVel = thisNewVel.clone();
 
-            //impulse to simulate bounce
-            //if not approaching along the normal, leave velocities as-is
-            if (rel > 0){
-                let invSum = 1 / (this.mass + otherBody.mass);
-                thisNewVel.addScaledVector(direction, -this.bounceEffect * (otherBody.mass * invSum) * rel);
-                otherNewVel.addScaledVector(direction,  this.bounceEffect * (this.mass * invSum) * rel);
-            }
-
-            // // Inelastic along collision normal using impulse
-            // //project relative velocity onto the collision normal - gets velocity in direction of collision
-            // // if not approaching along the normal, leave velocities as-is
-            // if (rel >= 0){
-            //     // keep current velocities
-            //     var thisNewVel  = thisVel;
-            //     var otherNewVel = otherVel;
-            // } else {
-            //     // coefficient of restitution (0 = inelastic / no bounce, 1 = elastic) is bouncEffect
-
-            //     // impulse magnitude (point-mass, no rotation)
-            //     // j = -(1+e) * rel / (1/m1 + 1/m2)
-            //     let invMassSum = (1 / this.mass) + (1 / otherBody.mass);
-            //     let j = - (1 + this.bounceEffect) * rel / invMassSum;
-
-            //     // apply change in velocity based on impulse
-            //     var thisNewVel  = thisVel.clone().add(direction.clone().multiplyScalar( j / this.mass));
-            //     var otherNewVel = otherVel.clone().add(direction.clone().multiplyScalar(-j / otherBody.mass));
+            // //impulse to simulate bounce
+            // //if not approaching along the normal, leave velocities as-is
+            // if (rel > 0){
+            //     let invThisMass = 1 / this.mass;
+            //     let invOtherMass = 1 / otherBody.mass;
+            //     let invSum = invOtherMass + invThisMass;
+            //     let impulse =   -this.bounceEffect * rel / invSum;
+            //     thisNewVel.addScaledVector(direction, impulse * invThisMass);
+            //     otherNewVel.addScaledVector(direction,  -impulse * invOtherMass);
             // }
+
+            // Inelastic along collision normal using real impulse
+            //project relative velocity onto the collision normal - gets velocity in direction of collision
+            // if not approaching along the normal, leave velocities as-is
+            if (rel <= 0){
+                // keep current velocities
+                var thisNewVel  = thisVel;
+                var otherNewVel = otherVel;
+            } else {
+                // coefficient of restitution (0 = inelastic / no bounce, 1 = elastic) is bouncEffect
+
+                // impulse magnitude (point-mass, no rotation)
+                // j = -(1+e) * rel / (1/m1 + 1/m2)
+                let invMassSum = (1 / this.mass) + (1 / otherBody.mass);
+                if (invMassSum <= 0){
+                    console.log("TINY INV MASS SUM");
+                    return;
+                }
+                let j = - (1 + this.bounceEffect) * rel / invMassSum;
+
+                // apply change in velocity based on impulse
+                var thisNewVel  = thisVel.clone().add(direction.clone().multiplyScalar(j / this.mass));
+                var otherNewVel = otherVel.clone().add(direction.clone().multiplyScalar(-j / otherBody.mass));
+            }
 
             this.velocity[0] = thisNewVel.x; this.velocity[1] = thisNewVel.y; this.velocity[2] = thisNewVel.z;
             otherBody.velocity[0] = otherNewVel.x; otherBody.velocity[1] = otherNewVel.y; otherBody.velocity[2] = otherNewVel.z;
