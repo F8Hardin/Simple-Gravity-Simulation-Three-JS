@@ -29,6 +29,7 @@ export default class OctTree extends SolutionBase {
 
         this.debugBoxes = [];
         this.rootNode = new treeNode({physBodies: this.physBodies, length: this.rootRange})
+        this.naiveAnimate = true;
 
         this.buildTree(this.rootNode);
     }
@@ -156,5 +157,102 @@ export default class OctTree extends SolutionBase {
         lines.position.set(node.position[0], node.position[1], node.position[2]);
         this.scene.add(lines);
         this.debugBoxes.push(lines);
+    }
+
+    animate() {
+        if (this.naiveAnimate)
+            this.octTreeAnimateNaive();
+        else
+            this.octTreeAnimateBarnesHut();
+    }
+
+    octTreeAnimateBarnesHut(){
+        console.log("Barnes hut not yet implemented.");
+    }
+
+    octTreeAnimateNaive() { //redraws tree every x frames
+      let clockDelta = this.clock.getDelta();
+      let timeSinceLastFrame = Math.min(clockDelta, 1/30);
+      this.frameRate = 1 / clockDelta;
+      this.frameCount += 1;
+
+      this.resetAcceleration();
+      if (this.updateOctTreeEveryFrames == this.frameCount){
+        this.frameCount = 0;
+        this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
+      }
+
+      if (this.speedModifier > 0){
+        this.traverseOctTree(this.rootNode);
+        for (let b of this.physBodies){
+          b.updatePhysics(timeSinceLastFrame * this.speedModifier);
+        }
+      }
+
+      if (this.focusPoint) {
+        this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
+      }
+      this.renderer.render( this.scene, this.camera );
+    }
+
+    octTreeAnimateStatic(){ //static tree and updated bodies in nodes
+      let clockDelta = this.clock.getDelta();
+      let timeSinceLastFrame = Math.min(clockDelta, 1/30);
+      this.frameRate = 1 / clockDelta;
+      this.frameCount += 1;
+      this.resetAcceleration();
+
+      //new logic here
+
+      this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
+      this.renderer.render( this.scene, this.camera );
+    }
+
+    traverseOctTree(currentNode, nodeRemainingBodies = [], allNodesThisLevel = []){ //review for duplicates
+      //compare current nodes bodies to its own bodies
+      for (let j = 0; j < currentNode.physBodies.length; j++){
+        let body1 = currentNode.physBodies[j];
+        for (let k = j + 1; k < currentNode.physBodies.length; k++){
+          let body2 = currentNode.physBodies[k];
+          this.checkCollisionAndGravity(body1, body2);
+        }
+      }
+
+      if (nodeRemainingBodies.length > 0){ //compare parents remaining with children
+        for (let j = 0; j < nodeRemainingBodies.length; j++){
+          let body1 = nodeRemainingBodies[j];
+          for (let k = 0; k < currentNode.physBodies.length; k++){
+            let body2 = currentNode.physBodies[k];
+            this.checkCollisionAndGravity(body1, body2);
+          }
+        }
+      }
+
+      //traverse any children
+      let newNodeRemainingBodies = nodeRemainingBodies.length ? nodeRemainingBodies.concat(currentNode.physBodies) : currentNode.physBodies.slice();
+      for (let i = 0; i < currentNode.children.length; i++){
+        this.traverseOctTree(currentNode.children[i], newNodeRemainingBodies, currentNode.children);
+      }
+
+      //compare to current nodes bodies neighboring nodes bodies
+      if (allNodesThisLevel.length > 0){
+        let currentNodeIndex = allNodesThisLevel.indexOf(currentNode);
+
+        if (currentNodeIndex != -1){
+          for (let i = currentNodeIndex + 1; i < allNodesThisLevel.length; i++){
+            for (let j = 0; j < allNodesThisLevel[i].physBodies.length; j++){
+              let body1 = allNodesThisLevel[i].physBodies[j];
+              for (let k = 0; k < currentNode.physBodies.length; k++){
+                let body2 = currentNode.physBodies[k];
+                this.checkCollisionAndGravity(body1, body2);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    getAnimationState(){
+        return this.naiveAnimate;
     }
 }

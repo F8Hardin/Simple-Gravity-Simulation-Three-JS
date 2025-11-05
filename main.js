@@ -11,9 +11,9 @@ class SimulationScene {
     this.maxSpawnRange = 5;
     this.bounceEffect = .1;
     this.gravConstant = .01;
-    this.bodyCount = 50;
+    this.bodyCount = 3;
     this.massMin = 1;
-    this.massMax = 100;
+    this.massMax = 10;
     this.physBodySize = 10;
 
     //scene setup
@@ -25,7 +25,7 @@ class SimulationScene {
     this.focusPoint = null;
     this.physBodies = [];
     //this.animationLoop = null;
-    this.animationName = "bruteForce"; //need to organize names with frontend names somehow
+    this.animationName = "bruteForce"; //need to organize names with frontend names somehow. perhaps using the json files that define the scene
     this.frameRate = 0;
     this.frameCount = 0;
     //this.clock = new THREE.Clock();
@@ -48,7 +48,7 @@ class SimulationScene {
     this.trailLengths = 250;
     this.speedModifier = 1;
     this.sandBoxMode = false;
-    this.defaultScene = "Default Scene"
+    this.defaultScene = "Default Scene" //ensure scenes are all in a json and grabbed from there
     this.desiredScene = this.defaultScene;
 
     this.init();
@@ -69,7 +69,7 @@ class SimulationScene {
     switch ( this.animationName ) {
       case "octTree":
         console.log("Building Oct Tree Solution");
-        this.solution = new OctTree({gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraScroll: this.cameraScroll, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 1.5 * this.maxSpawnRange * AUModifer, scene: this.pivot});
+        this.solution = new OctTree({renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraScroll: this.cameraScroll, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 1.5 * this.maxSpawnRange * AUModifer, scene: this.pivot});
         break;
       default:
         console.log("Building Naive Solution...")
@@ -89,6 +89,7 @@ class SimulationScene {
 
   sceneInit(){ //initializes the desired scene
     if (this.desiredScene == "Default Scene"){
+      //get default scene json
       console.log("Preparing default scene");
       //always the first body spawned
       if (this.bodyCount != 0){
@@ -146,147 +147,6 @@ class SimulationScene {
     this.physBodies = [];
   }
 
-  // resetAcceleration() {
-  //   for (let body of this.physBodies) { //reset acceleration
-  //     body.acceleration[0] = 0;
-  //     body.acceleration[1] = 0;
-  //     body.acceleration[2] = 0;
-  //   }
-  // }
-
-  // animate() {
-  //   let clockDelta = this.clock.getDelta();
-  //   let timeSinceLastFrame = Math.min(clockDelta, 1/30);
-  //   this.frameRate = 1 / clockDelta;
-
-  //   this.resetAcceleration();
-
-  //   for (let i = 0; i < this.physBodies.length; i++) {
-  //     let body1 = this.physBodies[i]
-  //     for (let j = i + 1; j < this.physBodies.length; j++) {
-  //       let body2 = this.physBodies[j];
-  //       this.checkCollisionAndGravity(body1, body2);
-  //     }
-  //   }
-
-  //   for (let b of this.physBodies){
-  //     b.updatePhysics(timeSinceLastFrame * this.speedModifier);
-  //   }
-
-  //   if (this.focusPoint) {
-  //     this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
-  //   }
-  //   this.renderer.render( this.scene, this.camera );
-  // }
-
-  // octTreeAnimateRedraw() { //redraws tree every x frames
-  //   let clockDelta = this.clock.getDelta();
-  //   let timeSinceLastFrame = Math.min(clockDelta, 1/30);
-  //   this.frameRate = 1 / clockDelta;
-  //   this.frameCount += 1;
-
-  //   this.resetAcceleration();
-  //   if (this.updateOctTreeEveryFrames == this.frameCount){
-  //     this.frameCount = 0;
-  //     this.focusPoint ? this.octTree.buildTree(this.octTree.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.octTree.buildTree(this.octTree.rootNode, [0, 0, 0]);
-  //   }
-
-  //   if (this.speedModifier > 0){
-  //     this.traverseOctTree(this.octTree.rootNode);
-  //     for (let b of this.physBodies){
-  //       b.updatePhysics(timeSinceLastFrame * this.speedModifier);
-  //     }
-  //   }
-
-  //   if (this.focusPoint) {
-  //     this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
-  //   }
-  //   this.renderer.render( this.scene, this.camera );
-  // }
-
-  // octTreeAnimateStatic(){ //static tree and updated bodies in nodes
-  //   let clockDelta = this.clock.getDelta();
-  //   let timeSinceLastFrame = Math.min(clockDelta, 1/30);
-  //   this.frameRate = 1 / clockDelta;
-  //   this.frameCount += 1;
-  //   this.resetAcceleration();
-
-  //   //new logic here
-
-  //   this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
-  //   this.renderer.render( this.scene, this.camera );
-  // }
-
-  // traverseOctTree(currentNode, nodeRemainingBodies = [], allNodesThisLevel = []){ //review for duplicates
-  //   //compare current nodes bodies to its own bodies
-  //   for (let j = 0; j < currentNode.physBodies.length; j++){
-  //     let body1 = currentNode.physBodies[j];
-  //     for (let k = j + 1; k < currentNode.physBodies.length; k++){
-  //       let body2 = currentNode.physBodies[k];
-  //       this.checkCollisionAndGravity(body1, body2);
-  //     }
-  //   }
-
-  //   if (nodeRemainingBodies.length > 0){ //compare parents remaining with children
-  //     for (let j = 0; j < nodeRemainingBodies.length; j++){
-  //       let body1 = nodeRemainingBodies[j];
-  //       for (let k = 0; k < currentNode.physBodies.length; k++){
-  //         let body2 = currentNode.physBodies[k];
-  //         this.checkCollisionAndGravity(body1, body2);
-  //       }
-  //     }
-  //   }
-
-  //   //traverse any children
-  //   let newNodeRemainingBodies = nodeRemainingBodies.length ? nodeRemainingBodies.concat(currentNode.physBodies) : currentNode.physBodies.slice();
-  //   for (let i = 0; i < currentNode.children.length; i++){
-  //     this.traverseOctTree(currentNode.children[i], newNodeRemainingBodies, currentNode.children);
-  //   }
-
-  //   //compare to current nodes bodies neighboring nodes bodies
-  //   if (allNodesThisLevel.length > 0){
-  //     let currentNodeIndex = allNodesThisLevel.indexOf(currentNode);
-
-  //     if (currentNodeIndex != -1){
-  //       for (let i = currentNodeIndex + 1; i < allNodesThisLevel.length; i++){
-  //         for (let j = 0; j < allNodesThisLevel[i].physBodies.length; j++){
-  //           let body1 = allNodesThisLevel[i].physBodies[j];
-  //           for (let k = 0; k < currentNode.physBodies.length; k++){
-  //             let body2 = currentNode.physBodies[k];
-  //             this.checkCollisionAndGravity(body1, body2);
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // }
-
-  // checkCollisionAndGravity(body1, body2) {
-  //   let dx = body2.physPos[0] - body1.physPos[0];
-  //   let dy = body2.physPos[1] - body1.physPos[1];
-  //   let dz = body2.physPos[2] - body1.physPos[2];
-
-  //   let distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-  //   distance = Math.max(distance, body1.radius + body2.radius);
-
-  //   let body1AccelerationX = this.gravConstant * (dx / (distance ** 3)) * body2.mass;
-  //   let body1AccelerationY = this.gravConstant * (dy / (distance ** 3)) * body2.mass;
-  //   let body1AccelerationZ = this.gravConstant * (dz / (distance ** 3)) * body2.mass;
-
-  //   body1.acceleration[0] += body1AccelerationX;
-  //   body1.acceleration[1] += body1AccelerationY;
-  //   body1.acceleration[2] += body1AccelerationZ;
-
-  //   let body2AccelerationX = -this.gravConstant * (dx / (distance ** 3)) * body1.mass;
-  //   let body2AccelerationY = -this.gravConstant * (dy / (distance ** 3)) * body1.mass;
-  //   let body2AccelerationZ = -this.gravConstant * (dz / (distance ** 3)) * body1.mass;
-  //   body2.acceleration[0] += body2AccelerationX;
-  //   body2.acceleration[1] += body2AccelerationY;
-  //   body2.acceleration[2] += body2AccelerationZ;
-
-  //   body1.checkCollision(body2);
-  // }
-
   getFramerate(){
     return this.solution.frameRate.toPrecision(3);
   }
@@ -330,7 +190,7 @@ class SimulationScene {
 
   setBounceEffect(bounceValue) {
     this.bounceEffect = bounceValue;
-    for (let b of this.physBodies){
+    for (let b of this.solution.physBodies){
       b.setBounceEffect(bounceValue);
     }
   }

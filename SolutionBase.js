@@ -62,4 +62,9 @@ export class SolutionBase {
     updateCameraScroll(newValue){
         this.cameraScroll = newValue;
     }
+
+    getAnimationState(){
+        console.log("Get Animation state to be implemented in child classes. Otherwise value is null.");
+        return null;
+    }
 }
