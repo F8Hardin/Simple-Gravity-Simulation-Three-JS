@@ -4,8 +4,6 @@ import { LineSegmentsGeometry } from 'three/examples/jsm/lines/LineSegmentsGeome
 import { LineMaterial } from 'three/examples/jsm/lines/LineMaterial.js';
 import { SolutionBase } from './SolutionBase';
 
-let forceMaxChildren = false;
-
 
 class treeNode {
     constructor({physBodies = [], children = [], depth = 0, position = [0, 0, 0], length}) {
@@ -18,7 +16,7 @@ class treeNode {
 }
 
 export default class OctTree extends SolutionBase {
-    constructor({physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}) {
+    constructor({forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}) {
         super({physBodies, scene, cameraScroll, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
         this.physBodies = physBodies;
         this.maxDepth = maxDepth;
@@ -28,9 +26,12 @@ export default class OctTree extends SolutionBase {
         this.scene = scene;
 
         this.debugBoxes = [];
+        this.updateOctTreeEveryFrames = updateOctTreeEveryFrames ?? 30;
         this.rootNode = new treeNode({physBodies: this.physBodies, length: this.rootRange})
         this.naiveAnimate = true;
+        this.forceMaxChildren = forceMaxChildren ?? false;
 
+        this.frameCount = 0;
         this.buildTree(this.rootNode);
     }
 
@@ -50,7 +51,7 @@ export default class OctTree extends SolutionBase {
             this.rootNode.physBodies = this.physBodies;
         }
 
-        if ((forceMaxChildren && someTreeNode.depth < this.maxDepth) || (someTreeNode.physBodies.length > this.maxBodyCount && someTreeNode.depth < this.maxDepth && someTreeNode.children.length === 0)){ //too many items and not at max subnodes
+        if ((this.forceMaxChildren && someTreeNode.depth < this.maxDepth) || (someTreeNode.physBodies.length > this.maxBodyCount && someTreeNode.depth < this.maxDepth && someTreeNode.children.length === 0)){ //too many items and not at max subnodes
             //create 8 children
             someTreeNode.children.push(new treeNode({
                 depth: someTreeNode.depth + 1,
@@ -126,7 +127,7 @@ export default class OctTree extends SolutionBase {
             someTreeNode.physBodies = remaining;
             for (let k = 0; k < someTreeNode.children.length; k++){
                 someTreeNode.children[k].physBodies = childBuckets[k];
-                if (someTreeNode.children[k].physBodies.length > 0 || forceMaxChildren){
+                if (someTreeNode.children[k].physBodies.length > 0 || this.forceMaxChildren){
                     this.buildTree(someTreeNode.children[k]);
                 }
             }
@@ -177,8 +178,10 @@ export default class OctTree extends SolutionBase {
       this.frameCount += 1;
 
       this.resetAcceleration();
+      
       if (this.updateOctTreeEveryFrames == this.frameCount){
         this.frameCount = 0;
+        console.log(this.focusPoint);
         this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
       }
 

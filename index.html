@@ -88,7 +88,7 @@
       bounceEffectSlider.value = bounceEffect;
       collisionTreeSlider.value = gravSimScene.maxDepth;
       document.getElementById("animationLoops").value = gravSimScene.animationName;
-      document.getElementById("showOctTree").checked = gravSimScene.treeVisibilty;
+      document.getElementById("showOctTree").checked = gravSimScene.treeVisibility;
       sandBoxCheckBox.checked = gravSimScene.sandBoxMode;
       controlSceneStart.style.display = (gravSimScene.desiredScene == gravSimScene.defaultScene) ? 'flex' : 'none';
       currentGravConstantSlider.value = gravSimScene.gravConstant;
@@ -112,7 +112,7 @@
         document.getElementById("spawnRange").textContent = "Spawn Range (AU): " + spawnRangeSlider.value;
         document.getElementById("bounceEffect").textContent = "Bounce Effect: " + bounceEffectSlider.value;
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
-        document.getElementById("collisionTreeDepthText"). textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
+        document.getElementById("collisionTreeDepthText").textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
         document.getElementById("currentGravConstant").textContent = "Current Gravity Constant: " + gravSimScene.gravConstant;
       }
       setInterval(updateSimData, 100);
@@ -142,7 +142,10 @@
       function swapAnimationLoops(event) {
         let selected = event.target.value;
 
-        gravSimScene.swapAnimationLoop(selected);
+        let result = gravSimScene.swapAnimationLoop(selected);
+
+        //need to show/hide controls based off scene somehow, possibly a loop through the json if json of selected has unique controls property
+        document.getElementById("showOctTree").checked = gravSimScene.solution.treeVisibilty ?? false;
       }
       document.getElementById("animationLoops").addEventListener("change", swapAnimationLoops);
 
