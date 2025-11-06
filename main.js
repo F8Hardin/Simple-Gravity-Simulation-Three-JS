@@ -189,9 +189,9 @@ class SimulationScene {
   }
 
   setBounceEffect(bounceValue) {
-    this.bounceEffect = bounceValue;
+    this.bounceEffect = Number(bounceValue);
     for (let b of this.solution.physBodies){
-      b.setBounceEffect(bounceValue);
+      b.setBounceEffect(this.bounceEffect);
     }
   }
 

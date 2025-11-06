@@ -85,7 +85,7 @@
       spawnRangeSlider.value = gravSimScene.maxSpawnRange;
       speedModifierSlider.value = gravSimScene.solution.speedModifier ?? 1;
       gravSimScene.speedModifier = gravSimScene.solution.speedModifier ?? 1;
-      bounceEffectSlider.value = bounceEffect;
+      bounceEffectSlider.value = gravSimScene.bounceEffect;
       collisionTreeSlider.value = gravSimScene.maxDepth;
       document.getElementById("animationLoops").value = gravSimScene.animationName;
       document.getElementById("showOctTree").checked = gravSimScene.treeVisibility;

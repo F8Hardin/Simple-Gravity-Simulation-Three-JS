@@ -40,6 +40,9 @@ export default class PhysicsBody extends THREE.Mesh {
             this.physPos[0] = this.position.x / AUModifer;
             this.physPos[1] = this.position.y / AUModifer;
             this.physPos[2] = this.position.z / AUModifer;
+            otherBody.physPos[0] = otherBody.position.x / AUModifer;
+            otherBody.physPos[1] = otherBody.position.y / AUModifer;
+            otherBody.physPos[2] = otherBody.position.z / AUModifer;
 
             //momentum
             let thisVel = new THREE.Vector3(...this.velocity);
