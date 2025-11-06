@@ -53,7 +53,7 @@
           </select>
           <div id="controlSceneStart">
             <p id="bodyCount"></p>
-            <input type="range" min="0" max="7500" value="50" class="slider" id="bodyCountSlider">
+            <input type="text" min="0" max="5000" value="50" step="1" class="textInput" id="bodyCountTextBox">
             <p id="spawnRange"></p>
             <input type="range" min=".5" max="50" value="1" step=".5" class="slider" id="spawnRangeSlider">
           </div>
@@ -66,7 +66,7 @@
       import { gravSimScene } from "/main.js";
       import AUModifier from './Bodies/physicsBody.js';
 
-      let bodyCountSlider = document.getElementById("bodyCountSlider");
+      let bodyCountTextBox = document.getElementById("bodyCountTextBox");
       let showTrailsBox = document.getElementById("showTrails");
       let spawnRangeSlider = document.getElementById("spawnRangeSlider");
       let bounceEffectSlider = document.getElementById("bounceEffectSlider");
@@ -80,7 +80,7 @@
       let controlAccessPanel = document.getElementById("ControlAccessPanel");
       let currentGravConstantSlider = document.getElementById("currentGravConstantSlider");
 
-      bodyCountSlider.value = gravSimScene.bodyCount;
+      bodyCountTextBox.value = gravSimScene.bodyCount;
       showTrailsBox.checked = gravSimScene.showTrail;
       spawnRangeSlider.value = gravSimScene.maxSpawnRange;
       speedModifierSlider.value = gravSimScene.solution.speedModifier ?? 1;
@@ -108,7 +108,7 @@
 
       function updateSimData() {
         document.getElementById("frameRate").textContent = "FPS: " + gravSimScene.getFramerate();
-        document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountSlider.value;
+        document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountTextBox.value;
         document.getElementById("spawnRange").textContent = "Spawn Range (AU): " + spawnRangeSlider.value;
         document.getElementById("bounceEffect").textContent = "Bounce Effect: " + bounceEffectSlider.value;
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
@@ -118,10 +118,16 @@
       setInterval(updateSimData, 100);
 
       function updateBodyCount() {
-        gravSimScene.setBodyCount(bodyCountSlider.value);
+        let result = bodyCountTextBox.value < gravSimScene.solution.maxBodies ? bodyCountTextBox.value : gravSimScene.solution.maxBodies
+        gravSimScene.setBodyCount(result);
+        bodyCountTextBox.value = result;
         restartSim();
       }
-      bodyCountSlider.addEventListener('mouseup', updateBodyCount);
+      bodyCountTextBox.addEventListener('keydown', (event) => {
+        if (event.key === "Enter") {
+          updateBodyCount();
+        }
+      });
 
       function toggleTrails(){
         gravSimScene.setShowTrail(showTrailsBox.checked)

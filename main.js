@@ -69,7 +69,7 @@ class SimulationScene {
     switch ( this.animationName ) {
       case "octTree":
         console.log("Building Oct Tree Solution");
-        this.solution = new OctTree({updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraScroll: this.cameraScroll, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 1.5 * this.maxSpawnRange * AUModifer, scene: this.pivot});
+        this.solution = new OctTree({maxBodies: 3000, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraScroll: this.cameraScroll, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 1.5 * this.maxSpawnRange * AUModifer, scene: this.pivot});
         break;
       default:
         console.log("Building Naive Solution...")

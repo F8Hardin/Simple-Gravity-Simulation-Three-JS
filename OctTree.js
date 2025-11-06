@@ -16,8 +16,8 @@ class treeNode {
 }
 
 export default class OctTree extends SolutionBase {
-    constructor({forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}) {
-        super({physBodies, scene, cameraScroll, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
+    constructor({maxBodies, forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}) {
+        super({maxBodies, physBodies, scene, cameraScroll, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
         this.physBodies = physBodies;
         this.maxDepth = maxDepth;
         this.maxBodyCount = maxBodyCount;
