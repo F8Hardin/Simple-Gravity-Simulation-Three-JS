@@ -55,7 +55,6 @@ export class SolutionBase {
     }
 
     setSpeedModifier(newValue){
-        console.log("setting")
         this.speedModifier = newValue;
     }
 
