@@ -21,7 +21,7 @@
         <p id="currentSpeed"></p>
         <input type="range" min="0" max="3" value="1" step=".01" class="slider" id="speedModifierSlider">
         <p id="currentGravConstant"></p>
-        <input type="range" min="0" max="1" value="1" step=".01" class="slider" id="currentGravConstantSlider">
+        <input type="range" min="0" max=".5" value="1" step=".0001" class="slider" id="currentGravConstantSlider">
         <div>
           Trail Length: 
           <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
@@ -29,6 +29,10 @@
         <div>
           Trail visibilty: 
           <input type="checkbox" id="showTrails" onclick="toggleTrails()">
+        </div>
+        <div>
+          Camera Rotate Speed:
+          <input type="range" id="rotateSpeed">
         </div>
         <div class="collisionTreeControls">
           Collision Tree Visibility: 
@@ -79,6 +83,7 @@
       let toggleHideAllBox = document.getElementById("hideAllCheckbox");
       let controlAccessPanel = document.getElementById("ControlAccessPanel");
       let currentGravConstantSlider = document.getElementById("currentGravConstantSlider");
+      let rotationSpeedSlider = document.getElementById("rotateSpeed");
 
       bodyCountTextBox.value = gravSimScene.bodyCount;
       showTrailsBox.checked = gravSimScene.showTrail;
@@ -92,6 +97,7 @@
       sandBoxCheckBox.checked = gravSimScene.sandBoxMode;
       controlSceneStart.style.display = (gravSimScene.desiredScene == gravSimScene.defaultScene) ? 'flex' : 'none';
       currentGravConstantSlider.value = gravSimScene.gravConstant;
+      //rotationSpeedSlider.value = gravSimScene.rotationSpeed;
 
 
       let option = document.createElement('option');
@@ -200,6 +206,11 @@
         gravSimScene.updateGravConstant(currentGravConstantSlider.value);
       }
       currentGravConstantSlider.addEventListener('mousemove', updateGravConstant);
+
+      function updateRotateSpeed(){
+        //gravSimScene.updateRotateSpeed(rotationSpeedSlider.value)
+      }
+      rotationSpeedSlider.addEventListener('mousemove', updateRotateSpeed);
     </script>
   </body>
 </html>

@@ -9,15 +9,15 @@ class SimulationScene {
   constructor () {
     //variables
     this.maxSpawnRange = 5;
-    this.bounceEffect = .1;
+    this.bounceEffect = .2;
     this.gravConstant = .01;
-    this.bodyCount = 3;
+    this.bodyCount = 200;
     this.massMin = 1;
-    this.massMax = 10;
+    this.massMax = 100;
     this.physBodySize = 10;
 
     //scene setup
-    this.cameraScroll = 1250;
+    this.cameraStart = 1250;
     this.pivot = null;
     this.scene = null;
     this.camera = null;
@@ -25,25 +25,27 @@ class SimulationScene {
     this.focusPoint = null;
     this.physBodies = [];
     //this.animationLoop = null;
-    this.animationName = "bruteForce"; //need to organize names with frontend names somehow. perhaps using the json files that define the scene
+    //this.animationName = "bruteForce"; //need to organize names with frontend names somehow. perhaps using the json files that define the scene
+    this.animationName = "octTree"
     this.frameRate = 0;
     this.frameCount = 0;
-    //this.clock = new THREE.Clock();
 
     //octTree setup
     this.maxDepth = 3;
     this.rootRange = 1.5 * this.maxSpawnRange * AUModifer;
     this.maxBodyCount = 8;
-    this.treeVisibility = true;
+    this.treeVisibility = false;
     this.updateOctTreeEveryFrames = 1;
-    this.forceMaxChildren = true;
+    this.forceMaxChildren = false;
     
     //controls
-    this.scrollModifier = .5;
-    this.spinCamera = false;
+    this.scrollModifier = 50;
+    this.strafeModifier = 100;
+    this.mouseDown = false;
+    this.cameraDirection = new THREE.Vector3(1, 0, 0);
+    this.rotationSpeed = .01;
     this.lastX = 0;
     this.lastY = 0;
-    this.rotateModifier = .01;
     this.showTrails = false;
     this.trailLengths = 250;
     this.speedModifier = 1;
@@ -59,7 +61,7 @@ class SimulationScene {
     this.scene = new THREE.Scene();
     this.scene.fog = null;
     this.camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 100000 );
-    this.camera.position.z = this.cameraScroll;
+    this.camera.position.z = this.cameraStart;
 
     this.pivot = new THREE.Group();
     this.sceneInit();
@@ -69,11 +71,11 @@ class SimulationScene {
     switch ( this.animationName ) {
       case "octTree":
         console.log("Building Oct Tree Solution");
-        this.solution = new OctTree({maxBodies: 3000, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraScroll: this.cameraScroll, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 1.5 * this.maxSpawnRange * AUModifer, scene: this.pivot});
+        this.solution = new OctTree({maxBodies: 3000, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 2 * this.maxSpawnRange * AUModifer, scene: this.pivot});
         break;
       default:
         console.log("Building Naive Solution...")
-        this.solution = new NaiveSolution({speedModifier: this.speedModifier, cameraScroll: this.cameraScroll, focusPoint: this.focusPoint, physBodies : this.physBodies, frameRate : this.frameRate, frameCount : this.frameCount, scene: this.scene, camera: this.camera, renderer: this.renderer, gravConstant: this.gravConstant});
+        this.solution = new NaiveSolution({speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, physBodies : this.physBodies, frameRate : this.frameRate, frameCount : this.frameCount, scene: this.scene, camera: this.camera, renderer: this.renderer, gravConstant: this.gravConstant});
         break;
     }
 
@@ -93,7 +95,7 @@ class SimulationScene {
       console.log("Preparing default scene");
       //always the first body spawned
       if (this.bodyCount != 0){
-        this.focusPoint = new Star({ root: this.pivot, mass: randFloat(this.massMin, this.massMax), bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(this.physBodySize, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+        this.focusPoint = new Star({ root: this.pivot, mass: 5000, bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(30, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
         this.physBodies.push(this.focusPoint);
       }
       for (let i = 0; i < this.bodyCount - 1; i++) { //- 1 to include sun AKA starting focusPoint
@@ -155,7 +157,7 @@ class SimulationScene {
     this.bodyCount = newCount;
   }
 
-  toggleDrawOctTree(){
+  toggleDrawOctTree(){ //bug Here: if check box clicked while oct tree isn't the current solution checkbox is out of sync
     this.solution.visibleTree = !this.solution.visibleTree;
     this.treeVisibility = this.solution.visibleTree;
     return this.solution.visibleTree;
@@ -209,49 +211,85 @@ class SimulationScene {
     this.init();
   }
 
-  updateCameraScroll(newValue){
-    this.cameraScroll += newValue;
-    this.camera.position.z = this.cameraScroll;
-    this.solution.updateCameraScroll(this.cameraScroll);
+  updateCameraScroll(scrollValue, modifier){
+    let direction = new THREE.Vector3();
+    this.camera.getWorldDirection(direction);
+    direction.normalize(); 
+    this.camera.position.add(direction.multiplyScalar(modifier * -scrollValue));
   }
 
   updateGravConstant(newValue){
     this.gravConstant = newValue;
     this.solution.gravConstant = newValue;
   }
+
+  updateCameraStrafe(value){
+    if (!this.focusPoint){
+      let direction = new THREE.Vector3();
+      let up = new THREE.Vector3(0, 1, 0);
+      this.camera.getWorldDirection(direction);
+      let right = new THREE.Vector3();
+      right.crossVectors(direction, up);
+      this.camera.position.add(right.multiplyScalar(this.strafeModifier * value));
+    }
+  }
 }
 
 export const gravSimScene = new SimulationScene();
 
 window.addEventListener('wheel', (e) => {
-  let scrollY = e.deltaY * gravSimScene.scrollModifier;
-  gravSimScene.updateCameraScroll(scrollY);
+  let scrollY = Math.sign(e.deltaY);
+  gravSimScene.updateCameraScroll(scrollY, gravSimScene.scrollModifier);
 });
 window.addEventListener('mousedown', (e) => { 
-  gravSimScene.spinCamera = true; 
+  gravSimScene.mouseDown = true; 
   gravSimScene.lastX = e.clientX; 
   gravSimScene.lastY = e.clientY;
 });
 window.addEventListener('mouseup', (e) => { 
-  gravSimScene.spinCamera = false;
+  gravSimScene.mouseDown = false;
 });
 window.addEventListener('mousemove', (e) => {
-  if (gravSimScene.spinCamera) {
+  if (gravSimScene.mouseDown) {
     let deltaX = gravSimScene.lastX - e.clientX;
     let deltaY = gravSimScene.lastY - e.clientY;
 
     gravSimScene.lastX = e.clientX;
     gravSimScene.lastY = e.clientY;
 
-    gravSimScene.pivot.rotation.y += (deltaX * gravSimScene.rotateModifier);
-    gravSimScene.pivot.rotation.z += (deltaY * gravSimScene.rotateModifier);
+    let focus = new THREE.Vector3();
+    let up = new THREE.Vector3(0, 1, 0);
 
-    // gravSimScene.camera.lookAt(gravSimScene.focusPoint);
+    if (gravSimScene.focusPoint){
+      gravSimScene.focusPoint.getWorldPosition(focus);
+
+      //direction vector
+      let direction = gravSimScene.camera.position.clone().sub(focus);
+
+      let yaw = new THREE.Quaternion().setFromAxisAngle(up, deltaX * gravSimScene.rotationSpeed);
+      direction.applyQuaternion(yaw);
+
+      let right = new THREE.Vector3().crossVectors(direction, up).normalize();
+      let pitch = new THREE.Quaternion().setFromAxisAngle(right, -deltaY * gravSimScene.rotationSpeed);
+      direction.applyQuaternion(pitch);
+
+      gravSimScene.camera.position.copy(focus).add(direction);
+      gravSimScene.camera.up.copy(up);
+      gravSimScene.camera.lookAt(focus);
+    }
   }
 });
 window.addEventListener('keydown', (e) => {
   if (e.key.toLowerCase() === 'r'){
     gravSimScene.pivot.rotation.set(0, 0, 0);
+  } else if (e.key.toLowerCase() === 'w') {
+    gravSimScene.updateCameraScroll(gravSimScene.strafeModifier, -1);
+  } else if (e.key.toLowerCase() === 'a') {
+    gravSimScene.updateCameraStrafe(-1)
+  } else if (e.key.toLowerCase() === 's') {
+    gravSimScene.updateCameraScroll(gravSimScene.strafeModifier, 1)
+  } else if (e.key.toLowerCase() === 'd') {
+    gravSimScene.updateCameraStrafe(1)
   }
 });
 window.addEventListener('resize', () => {

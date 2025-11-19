@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { AUModifer } from './Bodies/physicsBody';
 
 export class SolutionBase {
-    constructor({physBodies = [], frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}){
+    constructor({maxBodies = 1000, physBodies = [], frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}){
         this.physBodies = physBodies;
         this.clock = new THREE.Clock();
         this.frameRate = frameRate;
@@ -12,8 +12,8 @@ export class SolutionBase {
 
         this.scene = scene;
         this.camera = camera;
-        this.cameraScroll = cameraScroll;
         this.renderer = renderer;
+        this.maxBodies = maxBodies;
     }
 
     animate() {
@@ -58,12 +58,16 @@ export class SolutionBase {
         this.speedModifier = newValue;
     }
 
-    updateCameraScroll(newValue){
-        this.cameraScroll = newValue;
-    }
-
     getAnimationState(){
         console.log("Get Animation state to be implemented in child classes. Otherwise value is null.");
         return null;
+    }
+
+    cameraTrackFocus(){
+        if (this.focusPoint){
+            let focusPosition = new THREE.Vector3();
+            this.focusPoint.getWorldPosition(focusPosition);
+            this.camera.lookAt(focusPosition);    
+        }
     }
 }

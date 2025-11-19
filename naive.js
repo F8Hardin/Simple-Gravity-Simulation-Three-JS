@@ -25,9 +25,6 @@ export default class NaiveSolution extends SolutionBase{
             b.updatePhysics(timeSinceLastFrame * this.speedModifier);
         }
 
-        if (this.focusPoint) {
-            this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
-        }
         this.renderer.render( this.scene, this.camera );
     }
 }

@@ -16,8 +16,8 @@ class treeNode {
 }
 
 export default class OctTree extends SolutionBase {
-    constructor({maxBodies, forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1, cameraScroll = 1250}) {
-        super({maxBodies, physBodies, scene, cameraScroll, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
+    constructor({maxBodies, forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}) {
+        super({maxBodies, physBodies, scene, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
         this.physBodies = physBodies;
         this.maxDepth = maxDepth;
         this.maxBodyCount = maxBodyCount;
@@ -165,6 +165,8 @@ export default class OctTree extends SolutionBase {
             this.octTreeAnimateNaive();
         else
             this.octTreeAnimateBarnesHut();
+
+        this.cameraTrackFocus();
     }
 
     octTreeAnimateBarnesHut(){
@@ -181,7 +183,7 @@ export default class OctTree extends SolutionBase {
       
       if (this.updateOctTreeEveryFrames == this.frameCount){
         this.frameCount = 0;
-        console.log(this.focusPoint);
+        //console.log(this.focusPoint);
         this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
       }
 
@@ -192,9 +194,6 @@ export default class OctTree extends SolutionBase {
         }
       }
 
-      if (this.focusPoint) {
-        this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
-      }
       this.renderer.render( this.scene, this.camera );
     }
 
@@ -206,8 +205,6 @@ export default class OctTree extends SolutionBase {
       this.resetAcceleration();
 
       //new logic here
-
-      this.camera.position.copy(this.focusPoint.position).add(new THREE.Vector3(0, 0, this.cameraScroll));
       this.renderer.render( this.scene, this.camera );
     }
 
