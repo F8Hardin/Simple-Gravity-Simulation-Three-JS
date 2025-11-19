@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export const AUModifer = 100;
 
 export default class PhysicsBody extends THREE.Mesh {
-    constructor ({root, bounceEffect = 0, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
+    constructor ({maxSteps = 10, collisionType = "elasticKE", integrationType = "semi-implicit", root, bounceEffect = 0, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
         super(geometry, material)
         this.mass = mass;
         this.radius = geometry.parameters.radius;
@@ -20,6 +20,12 @@ export default class PhysicsBody extends THREE.Mesh {
         this.trailColor = trailColor;
         this.bounceEffect = bounceEffect;
         this.physPos = [position[0], position[1], position[2]];
+        this.collisionType = collisionType;
+        this.integrationType = integrationType;
+
+        this.accumulator = 0;
+        this.step = 0;
+        this.maxSteps = maxSteps;
 
         if (showTrail){
             this.lineCurve = new THREE.LineCurve(this.position, this.position);
@@ -49,43 +55,45 @@ export default class PhysicsBody extends THREE.Mesh {
             let otherVel = new THREE.Vector3(...otherBody.velocity);
             let rel = thisVel.clone().sub(otherVel).dot(direction);
 
-            // //Totally inelastic on all axis, hacked bounce via impulse
-            // let thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
-            // let otherNewVel = thisNewVel.clone();
+            // if not approaching along the normal, leave velocities as is
+            let thisNewVel  = thisVel;
+            let otherNewVel = otherVel;
 
-            // //impulse to simulate bounce
-            // //if not approaching along the normal, leave velocities as-is
-            // if (rel > 0){
-            //     let invThisMass = 1 / this.mass;
-            //     let invOtherMass = 1 / otherBody.mass;
-            //     let invSum = invOtherMass + invThisMass;
-            //     let impulse =   -this.bounceEffect * rel / invSum;
-            //     thisNewVel.addScaledVector(direction, impulse * invThisMass);
-            //     otherNewVel.addScaledVector(direction,  -impulse * invOtherMass);
-            // }
+            if (rel > 0){
+                if (this.collisionType == "inelasticHack"){
+                    //Totally inelastic on all axis, hacked bounce via impulse
+                    thisNewVel = thisVel.clone().multiplyScalar(this.mass).add(otherVel.clone().multiplyScalar(otherBody.mass)).divideScalar(this.mass + otherBody.mass);
+                    otherNewVel = thisNewVel.clone();
+                    let invMassSum = (1 / this.mass) + (1 / otherBody.mass);
+                    let j = - (this.bounceEffect) * rel / invMassSum; //need to include bounceEffect of other body
+                    thisNewVel.addScaledVector(direction, j / this.mass);
+                    otherNewVel.addScaledVector(direction,  -j / otherBody.mass);
+                } else if (this.collisionType == "impulse") {
+                    //linear velocity update
+                    // j = -(1+e) * rel / (1/m1 + 1/m2)
+                    let invMassSum = (1 / this.mass) + (1 / otherBody.mass);
+                    let j = - (1 + this.bounceEffect) * rel / invMassSum;
 
-            // Inelastic along collision normal using real impulse
-            //project relative velocity onto the collision normal - gets velocity in direction of collision
-            // if not approaching along the normal, leave velocities as-is
-            if (rel <= 0){
-                // keep current velocities
-                var thisNewVel  = thisVel;
-                var otherNewVel = otherVel;
-            } else {
-                // coefficient of restitution (0 = inelastic / no bounce, 1 = elastic) is bouncEffect
+                    // apply change in velocity based on impulse
+                    thisNewVel  = thisVel.clone().add(direction.clone().multiplyScalar(j / this.mass));
+                    otherNewVel = otherVel.clone().add(direction.clone().multiplyScalar(-j / otherBody.mass));
+                } else if (this.collisionType == "elasticKE") {
+                    //linear velocity update
+                    let thisVelNormal = direction.clone().multiplyScalar(thisVel.dot(direction)); //velocities along collision normal
+                    let otherVelNormal = direction.clone().multiplyScalar(otherVel.dot(direction));
 
-                // impulse magnitude (point-mass, no rotation)
-                // j = -(1+e) * rel / (1/m1 + 1/m2)
-                let invMassSum = (1 / this.mass) + (1 / otherBody.mass);
-                if (invMassSum <= 0){
-                    console.log("TINY INV MASS SUM");
-                    return;
+                    let thisVelTangential = thisVel.clone().sub(thisVelNormal); // tangential components stay unchanged
+                    let otherVelTangential = otherVel.clone().sub(otherVelNormal);
+
+                    let newthisVelNormal = thisVelNormal.clone().multiplyScalar((this.mass - this.bounceEffect * otherBody.mass) / (this.mass + otherBody.mass))
+                        .add(otherVelNormal.clone().multiplyScalar((1 + this.bounceEffect) * otherBody.mass / (this.mass + otherBody.mass)));
+
+                    let newotherVelNormal = otherVelNormal.clone().multiplyScalar((otherBody.mass - this.bounceEffect * this.mass) / (this.mass + otherBody.mass))
+                        .add(thisVelNormal.clone().multiplyScalar((1 + this.bounceEffect) * this.mass / (this.mass + otherBody.mass)));
+
+                    thisNewVel = thisVelTangential.add(newthisVelNormal);
+                    otherNewVel = otherVelTangential.add(newotherVelNormal);
                 }
-                let j = - (1 + this.bounceEffect) * rel / invMassSum;
-
-                // apply change in velocity based on impulse
-                var thisNewVel  = thisVel.clone().add(direction.clone().multiplyScalar(j / this.mass));
-                var otherNewVel = otherVel.clone().add(direction.clone().multiplyScalar(-j / otherBody.mass));
             }
 
             this.velocity[0] = thisNewVel.x; this.velocity[1] = thisNewVel.y; this.velocity[2] = thisNewVel.z;
@@ -94,12 +102,12 @@ export default class PhysicsBody extends THREE.Mesh {
     }
 
     updatePhysics(timeSinceLastFrame){ //called in animate of main to update this physics body, updates position from velocity and updates other physics properties
-        this.velocity[0] += this.acceleration[0] * timeSinceLastFrame;
-        this.velocity[1] += this.acceleration[1] * timeSinceLastFrame;
-        this.velocity[2] += this.acceleration[2] * timeSinceLastFrame;
-        this.physPos[0] += this.velocity[0] * timeSinceLastFrame;
-        this.physPos[1] += this.velocity[1] * timeSinceLastFrame;
-        this.physPos[2] += this.velocity[2] * timeSinceLastFrame;
+
+        if (this.integrationType == "semi-implicit"){
+            this.semiImplicit(timeSinceLastFrame);
+        } else if (this.integrationType == "explicit"){
+            this.explicitIntegration(timeSinceLastFrame);
+        }
 
         this.position.x = this.physPos[0] * AUModifer;
         this.position.y = this.physPos[1] * AUModifer;
@@ -126,6 +134,26 @@ export default class PhysicsBody extends THREE.Mesh {
         }
     }
 
+    semiImplicit(timeSinceLastFrame){
+        //semi-implicit Euler integration with variable timestep
+        this.velocity[0] += this.acceleration[0] * timeSinceLastFrame;
+        this.velocity[1] += this.acceleration[1] * timeSinceLastFrame;
+        this.velocity[2] += this.acceleration[2] * timeSinceLastFrame;
+        this.physPos[0] += this.velocity[0] * timeSinceLastFrame;
+        this.physPos[1] += this.velocity[1] * timeSinceLastFrame;
+        this.physPos[2] += this.velocity[2] * timeSinceLastFrame;
+    }
+
+    explicitIntegration(timeSinceLastFrame){
+        //explicit or forward with variable timestep
+        this.physPos[0] += this.velocity[0] * timeSinceLastFrame;
+        this.physPos[1] += this.velocity[1] * timeSinceLastFrame;
+        this.physPos[2] += this.velocity[2] * timeSinceLastFrame;
+        this.velocity[0] += this.acceleration[0] * timeSinceLastFrame;
+        this.velocity[1] += this.acceleration[1] * timeSinceLastFrame;
+        this.velocity[2] += this.acceleration[2] * timeSinceLastFrame;
+    }
+
     setShowTrail(showValue){
         this.showTrail = showValue;
 
@@ -145,8 +173,12 @@ export default class PhysicsBody extends THREE.Mesh {
     }
 }
 
-
-//Add ability to swap between different collision types
-//Add ability to swap animate functions, demonstrating different algorithm efficiencies
+//Adjust scene logic: Default scene and other scenes obtained from json, currently default uses hardcoded variables in main
+//adjust animation timing - currently delta time changes causing skips in calculations when performance is bad, things jump and possibly getting several impulses added on collision (or comparing the two twice)
+//Add ability to swap between different collision types - naive v octtree, hacked inelastic on all axis v inelastic on collision normal 
 //Add control to change bounce effect - weird not taking affect it seems, changing manually in code changes behavior but changing the slider at all things go flying even from 0 to .01
 //Different control configurations based on different algorithms - higher body count for more efficient one, etc.
+//fix camera controls - move camera backwards/left/right/up/down instead of changing x,y,z directly -> update scroll first to get started then controls for dragging
+
+
+//Animation functions are inacurrate -> need something that is stable to measure time, performance affects the physics too much. This should be contained in the physics bodies updatePhysics()
