@@ -214,8 +214,9 @@ class SimulationScene {
   updateCameraScroll(scrollValue, modifier){
     let direction = new THREE.Vector3();
     this.camera.getWorldDirection(direction);
-    direction.normalize(); 
-    this.camera.position.add(direction.multiplyScalar(modifier * -scrollValue));
+    direction.normalize();
+    this.solution.cameraDisplacement = this.solution.cameraDisplacement.add(direction.multiplyScalar(modifier * -scrollValue));
+    //this.camera.position.add(direction.multiplyScalar(modifier * -scrollValue));
   }
 
   updateGravConstant(newValue){
@@ -269,13 +270,13 @@ window.addEventListener('mousemove', (e) => {
       let yaw = new THREE.Quaternion().setFromAxisAngle(up, deltaX * gravSimScene.rotationSpeed);
       direction.applyQuaternion(yaw);
 
-      let right = new THREE.Vector3().crossVectors(direction, up).normalize();
+      let right = new THREE.Vector3().crossVectors(direction, up).normalize(); //flicker occurs when direction is very close to up so cross product is close to (0, 0, 0)
       let pitch = new THREE.Quaternion().setFromAxisAngle(right, -deltaY * gravSimScene.rotationSpeed);
       direction.applyQuaternion(pitch);
 
-      gravSimScene.camera.position.copy(focus).add(direction);
-      gravSimScene.camera.up.copy(up);
-      gravSimScene.camera.lookAt(focus);
+      gravSimScene.solution.cameraDisplacement = direction;
+      // gravSimScene.camera.position.copy(focus).add(direction);
+      // gravSimScene.camera.lookAt(focus);
     }
   }
 });

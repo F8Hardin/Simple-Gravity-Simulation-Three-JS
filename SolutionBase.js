@@ -14,6 +14,8 @@ export class SolutionBase {
         this.camera = camera;
         this.renderer = renderer;
         this.maxBodies = maxBodies;
+
+        this.cameraDisplacement = null;
     }
 
     animate() {
@@ -67,7 +69,14 @@ export class SolutionBase {
         if (this.focusPoint){
             let focusPosition = new THREE.Vector3();
             this.focusPoint.getWorldPosition(focusPosition);
-            this.camera.lookAt(focusPosition);    
+
+            //store desired displacement from focus, apply that here as well
+            if (this.cameraDisplacement){
+                console.log(this.cameraDisplacement);
+                this.camera.position.copy(focusPosition).add(this.cameraDisplacement);
+            }
+            this.camera.lookAt(focusPosition);
+            this.cameraDisplacement = this.camera.position.clone().sub(focusPosition);
         }
     }
 }
