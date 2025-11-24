@@ -15,6 +15,7 @@ class SimulationScene {
     this.massMin = 1;
     this.massMax = 100;
     this.physBodySize = 10;
+    this.massSizeMult = 1.1;
 
     //scene setup
     this.cameraStart = 1250;
@@ -95,13 +96,17 @@ class SimulationScene {
       console.log("Preparing default scene");
       //always the first body spawned
       if (this.bodyCount != 0){
-        this.focusPoint = new Star({ root: this.pivot, mass: 5000, bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(30, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
+        let randomMass = randFloat(this.massMin, this.massMax);
+        let size = randomMass * this.massSizeMult;
+        this.focusPoint = new Star({ root: this.pivot, mass: randomMass, bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(size, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
         this.physBodies.push(this.focusPoint);
       }
       for (let i = 0; i < this.bodyCount - 1; i++) { //- 1 to include sun AKA starting focusPoint
         let color = new THREE.Color( 0xffffff );
         color.setHex( Math.random() * 0xffffff );
-        this.physBodies.push(new PhysicsBody({ root: this.pivot, mass: randFloat(this.massMin, this.massMax), bounceEffect: this.bounceEffect, trailColor: color, showTrail: this.showTrails, trailLength: this.trailLengths, position: [randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange)], geometry: new THREE.SphereGeometry(this.physBodySize, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
+        let randomMass = randFloat(this.massMin, this.massMax);
+        let size = randomMass * this.massSizeMult;
+        this.physBodies.push(new PhysicsBody({ root: this.pivot, mass: randomMass, bounceEffect: this.bounceEffect, trailColor: color, showTrail: this.showTrails, trailLength: this.trailLengths, position: [randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange)], geometry: new THREE.SphereGeometry(size, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
       }
 
       for (let b of this.physBodies) {
