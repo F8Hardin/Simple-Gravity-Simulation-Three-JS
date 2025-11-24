@@ -264,7 +264,8 @@ window.addEventListener('mousemove', (e) => {
     gravSimScene.lastY = e.clientY;
 
     let focus = new THREE.Vector3();
-    let up = new THREE.Vector3(0, 1, 0);
+    //camera's up
+    let up = gravSimScene.camera.up.clone();
 
     if (gravSimScene.focusPoint){
       gravSimScene.focusPoint.getWorldPosition(focus);
@@ -275,13 +276,17 @@ window.addEventListener('mousemove', (e) => {
       let yaw = new THREE.Quaternion().setFromAxisAngle(up, deltaX * gravSimScene.rotationSpeed);
       direction.applyQuaternion(yaw);
 
-      let right = new THREE.Vector3().crossVectors(direction, up).normalize(); //flicker occurs when direction is very close to up so cross product is close to (0, 0, 0)
-      let pitch = new THREE.Quaternion().setFromAxisAngle(right, -deltaY * gravSimScene.rotationSpeed);
+      let right = new THREE.Vector3().crossVectors(up, direction).normalize(); //direction x up is left
+      let pitch = new THREE.Quaternion().setFromAxisAngle(right, deltaY * gravSimScene.rotationSpeed);
       direction.applyQuaternion(pitch);
 
+      //update up vector
+      up.applyQuaternion(yaw);
+      up.applyQuaternion(pitch);
+      up.normalize()
+      gravSimScene.camera.up.copy(up);
+
       gravSimScene.solution.cameraDisplacement = direction;
-      // gravSimScene.camera.position.copy(focus).add(direction);
-      // gravSimScene.camera.lookAt(focus);
     }
   }
 });
