@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { AUModifer } from './Bodies/physicsBody';
 
 export class SolutionBase {
     constructor({maxBodies = 1000, physBodies = [], frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}){
@@ -31,12 +30,11 @@ export class SolutionBase {
     }
 
     checkCollisionAndGravity(body1, body2) {
-        let dx = body2.physPos[0] - body1.physPos[0];
-        let dy = body2.physPos[1] - body1.physPos[1];
-        let dz = body2.physPos[2] - body1.physPos[2];
+        let dx = body2.position.x - body1.position.x;
+        let dy = body2.position.y - body1.position.y;
+        let dz = body2.position.z - body1.position.z;
 
         let distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        distance = Math.max(distance, (body1.radius + body2.radius) / AUModifer);
 
         let body1AccelerationX = this.gravConstant * (dx / (distance ** 3)) * body2.mass;
         let body1AccelerationY = this.gravConstant * (dy / (distance ** 3)) * body2.mass;
@@ -72,7 +70,6 @@ export class SolutionBase {
 
             //store desired displacement from focus, apply that here as well
             if (this.cameraDisplacement){
-                console.log(this.cameraDisplacement);
                 this.camera.position.copy(focusPosition).add(this.cameraDisplacement);
             }
             this.camera.lookAt(focusPosition);
