@@ -8,17 +8,16 @@ import NaiveSolution from './naive.js';
 class SimulationScene {
   constructor () {
     //variables
-    this.maxSpawnRange = 5;
+    this.maxSpawnRange = .5;
     this.bounceEffect = .2;
-    this.gravConstant = .01;
-    this.bodyCount = 200;
-    this.massMin = 1;
+    this.gravConstant = 10;
+    this.bodyCount = 20;
+    this.massMin = 10;
     this.massMax = 100;
-    this.physBodySize = 10;
-    this.massSizeMult = 1.1;
+    this.massSizeMult = .011;
 
     //scene setup
-    this.cameraStart = 1250;
+    this.cameraStart = 200;
     this.pivot = null;
     this.scene = null;
     this.camera = null;
