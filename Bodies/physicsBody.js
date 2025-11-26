@@ -3,7 +3,7 @@ import * as THREE from 'three';
 export const AUModifer = 100;
 
 export default class PhysicsBody extends THREE.Mesh {
-    constructor ({maxSteps = 10, collisionType = "elasticKE", integrationType = "semi-implicit", root, bounceEffect = 0, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
+    constructor ({maxSteps = 10, collisionType = "PCFormula", integrationType = "semi-implicit", root, bounceEffect = 0, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
         super(geometry, material)
         this.mass = mass;
         this.radius = geometry.parameters.radius;
@@ -19,7 +19,6 @@ export default class PhysicsBody extends THREE.Mesh {
         this.trailLength = trailLength;
         this.trailColor = trailColor;
         this.bounceEffect = bounceEffect;
-        this.physPos = [position[0], position[1], position[2]];
         this.collisionType = collisionType;
         this.integrationType = integrationType;
 
@@ -43,12 +42,6 @@ export default class PhysicsBody extends THREE.Mesh {
             //update position - Needs to be based on masses of objects
             this.position.addScaledVector(direction, -.5 * overlap);
             otherBody.position.addScaledVector(direction, .5 * overlap);
-            this.physPos[0] = this.position.x / AUModifer;
-            this.physPos[1] = this.position.y / AUModifer;
-            this.physPos[2] = this.position.z / AUModifer;
-            otherBody.physPos[0] = otherBody.position.x / AUModifer;
-            otherBody.physPos[1] = otherBody.position.y / AUModifer;
-            otherBody.physPos[2] = otherBody.position.z / AUModifer;
 
             //momentum
             let thisVel = new THREE.Vector3(...this.velocity);
@@ -93,6 +86,20 @@ export default class PhysicsBody extends THREE.Mesh {
 
                     thisNewVel = thisVelTangential.add(newthisVelNormal);
                     otherNewVel = otherVelTangential.add(newotherVelNormal);
+                } else if (this.collisionType == "PCFormula") {
+                    let v1n = direction.clone().multiplyScalar(thisVel.dot(direction));
+                    let v2n = direction.clone().multiplyScalar(otherVel.dot(direction));
+
+                    let j1 = (1 + this.bounceEffect) * otherBody.mass / (this.mass + otherBody.mass);
+                    let j2 = (1 + this.bounceEffect) * this.mass / (this.mass + otherBody.mass);
+
+                    thisNewVel = thisVel.clone().add(
+                        v2n.clone().sub(v1n).multiplyScalar(j1)
+                    );
+
+                    otherNewVel = otherVel.clone().add(
+                        v1n.clone().sub(v2n).multiplyScalar(j2)
+                    );
                 }
             }
 
@@ -108,10 +115,6 @@ export default class PhysicsBody extends THREE.Mesh {
         } else if (this.integrationType == "explicit"){
             this.explicitIntegration(timeSinceLastFrame);
         }
-
-        this.position.x = this.physPos[0] * AUModifer;
-        this.position.y = this.physPos[1] * AUModifer;
-        this.position.z = this.physPos[2] * AUModifer;
 
         if (this.showTrail && this.root){
             let wp = new THREE.Vector3();
@@ -132,6 +135,8 @@ export default class PhysicsBody extends THREE.Mesh {
                 this.trailLine.geometry = geometry;
             }
         }
+
+        console.log(this.velocity);
     }
 
     semiImplicit(timeSinceLastFrame){
@@ -139,16 +144,16 @@ export default class PhysicsBody extends THREE.Mesh {
         this.velocity[0] += this.acceleration[0] * timeSinceLastFrame;
         this.velocity[1] += this.acceleration[1] * timeSinceLastFrame;
         this.velocity[2] += this.acceleration[2] * timeSinceLastFrame;
-        this.physPos[0] += this.velocity[0] * timeSinceLastFrame;
-        this.physPos[1] += this.velocity[1] * timeSinceLastFrame;
-        this.physPos[2] += this.velocity[2] * timeSinceLastFrame;
+        this.position.x += this.velocity[0] * timeSinceLastFrame;
+        this.position.y += this.velocity[1] * timeSinceLastFrame;
+        this.position.z += this.velocity[2] * timeSinceLastFrame;
     }
 
     explicitIntegration(timeSinceLastFrame){
         //explicit or forward with variable timestep
-        this.physPos[0] += this.velocity[0] * timeSinceLastFrame;
-        this.physPos[1] += this.velocity[1] * timeSinceLastFrame;
-        this.physPos[2] += this.velocity[2] * timeSinceLastFrame;
+        this.position.x += this.velocity[0] * timeSinceLastFrame;
+        this.position.y += this.velocity[1] * timeSinceLastFrame;
+        this.position.z += this.velocity[2] * timeSinceLastFrame;
         this.velocity[0] += this.acceleration[0] * timeSinceLastFrame;
         this.velocity[1] += this.acceleration[1] * timeSinceLastFrame;
         this.velocity[2] += this.acceleration[2] * timeSinceLastFrame;
