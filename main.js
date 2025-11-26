@@ -238,6 +238,10 @@ class SimulationScene {
       this.camera.position.add(right.multiplyScalar(this.strafeModifier * value));
     }
   }
+
+  updateRotateSpeed(value){
+    this.rotationSpeed = value;
+  }
 }
 
 export const gravSimScene = new SimulationScene();

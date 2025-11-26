@@ -19,9 +19,9 @@
           <p id="frameRate"></p>
         </div>
         <p id="currentSpeed"></p>
-        <input type="range" min="0" max="3" value="1" step=".01" class="slider" id="speedModifierSlider">
+        <input type="range" min="0" max="100" value="1" step=".01" class="slider" id="speedModifierSlider">
         <p id="currentGravConstant"></p>
-        <input type="range" min="0" max=".5" value="1" step=".0001" class="slider" id="currentGravConstantSlider">
+        <input type="range" min="0" max="100" value="1" step=".0001" class="slider" id="currentGravConstantSlider">
         <div>
           Trail Length: 
           <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
@@ -32,7 +32,7 @@
         </div>
         <div>
           Camera Rotate Speed:
-          <input type="range" id="rotateSpeed">
+          <input type="range" id="rotateSpeed" min=".005" max=".02" step=".001">
         </div>
         <div class="collisionTreeControls">
           Collision Tree Visibility: 
@@ -97,7 +97,7 @@
       sandBoxCheckBox.checked = gravSimScene.sandBoxMode;
       controlSceneStart.style.display = (gravSimScene.desiredScene == gravSimScene.defaultScene) ? 'flex' : 'none';
       currentGravConstantSlider.value = gravSimScene.gravConstant;
-      //rotationSpeedSlider.value = gravSimScene.rotationSpeed;
+      rotationSpeedSlider.value = gravSimScene.rotationSpeed;
 
 
       let option = document.createElement('option');
@@ -208,7 +208,7 @@
       currentGravConstantSlider.addEventListener('mousemove', updateGravConstant);
 
       function updateRotateSpeed(){
-        //gravSimScene.updateRotateSpeed(rotationSpeedSlider.value)
+        gravSimScene.updateRotateSpeed(rotationSpeedSlider.value)
       }
       rotationSpeedSlider.addEventListener('mousemove', updateRotateSpeed);
     </script>
