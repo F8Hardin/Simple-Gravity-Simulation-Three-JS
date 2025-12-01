@@ -71,11 +71,11 @@ class SimulationScene {
     switch ( this.animationName ) {
       case "octTree":
         console.log("Building Oct Tree Solution");
-        this.solution = new OctTree({maxBodies: 3000, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 2 * this.maxSpawnRange * AUModifer, scene: this.pivot});
+        this.solution = new OctTree({constantTimeStep: this.constantTimeStep, maxBodies: 3000, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 2 * this.maxSpawnRange * AUModifer, scene: this.pivot});
         break;
       default:
         console.log("Building Naive Solution...")
-        this.solution = new NaiveSolution({speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, physBodies : this.physBodies, frameRate : this.frameRate, frameCount : this.frameCount, scene: this.scene, camera: this.camera, renderer: this.renderer, gravConstant: this.gravConstant});
+        this.solution = new NaiveSolution({constantTimeStep: this.constantTimeStep, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, physBodies : this.physBodies, frameRate : this.frameRate, frameCount : this.frameCount, scene: this.scene, camera: this.camera, renderer: this.renderer, gravConstant: this.gravConstant});
         break;
     }
 
@@ -240,6 +240,14 @@ class SimulationScene {
 
   updateRotateSpeed(value){
     this.rotationSpeed = value;
+  }
+
+  toggleVariableTimeStep(){
+    this.solution.variableTimeStep = !this.solution.variableTimeStep;
+  }
+
+  updateTimeStep(value){
+    this.solution.constantTimeStep = value;
   }
 }
 
