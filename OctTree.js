@@ -189,7 +189,7 @@ export default class OctTree extends SolutionBase {
             if (this.speedModifier > 0){
                 this.traverseOctTree(this.rootNode);
                 for (let b of this.physBodies){
-                b.updatePhysics(clockDelta * this.speedModifier);
+                    b.updatePhysics(clockDelta * this.speedModifier);
                 }
             }
         } else {
@@ -201,7 +201,7 @@ export default class OctTree extends SolutionBase {
                 if (this.speedModifier > 0){
                     this.traverseOctTree(this.rootNode);
                     for (let b of this.physBodies){
-                    b.updatePhysics(this.constantTimeStep * this.speedModifier);
+                        b.updatePhysics(this.constantTimeStep * this.speedModifier);
                     }
                 }
 
