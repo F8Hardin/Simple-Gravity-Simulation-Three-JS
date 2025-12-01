@@ -19,7 +19,7 @@
           <p id="frameRate"></p>
         </div>
         <p id="currentSpeed"></p>
-        <input type="range" min="0" max="100" value="1" step=".01" class="slider" id="speedModifierSlider">
+        <input type="range" min="0" max="5" value="1" step=".01" class="slider" id="speedModifierSlider">
         <p id="currentGravConstant"></p>
         <input type="range" min="1" max="2" value="1" step=".01" class="slider" id="currentGravConstantSlider">
         <div>
@@ -136,7 +136,7 @@
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
         document.getElementById("collisionTreeDepthText").textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
         document.getElementById("currentGravConstant").textContent = "Current Gravity Constant: " + gravSimScene.gravConstant;
-        document.getElementById("currentTimeStep").textContent = "Current Time Step: " + roundToDecimalPlaces(timeStep.value, 4);
+        document.getElementById("currentTimeStep").textContent = "Current Time Step: " + roundToDecimalPlaces(timeStep.value, 4) + "s";
       }
       setInterval(updateSimData, 100);
 
