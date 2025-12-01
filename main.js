@@ -8,24 +8,25 @@ import NaiveSolution from './naive.js';
 class SimulationScene {
   constructor () {
     //variables
-    this.maxSpawnRange = .5;
+    this.maxSpawnRange = 1;
     this.bounceEffect = .2;
-    this.gravConstant = 10;
-    this.bodyCount = 20;
-    this.massMin = 10;
-    this.massMax = 100;
-    this.massSizeMult = .011;
+    this.gravConstant = 6.67e-11;
+    this.bodyCount = 25;
+    //this.massMin = 938e+18; //asteroid
+    //this.massMax = 5.972e+24; //earth
+    this.massMin = 1e5;
+    this.massMax = 1e12;
+    this.massSizeMult = 1 / this.massMax;
 
     //scene setup
-    this.cameraStart = 200;
+    this.cameraStart = 250;
     this.pivot = null;
     this.scene = null;
     this.camera = null;
     this.renderer = null;
     this.focusPoint = null;
     this.physBodies = [];
-    //this.animationLoop = null;
-    //this.animationName = "bruteForce"; //need to organize names with frontend names somehow. perhaps using the json files that define the scene
+    //need to organize names with frontend names somehow. perhaps using the json files that define the scene
     this.animationName = "octTree"
     this.frameRate = 0;
     this.frameCount = 0;
@@ -202,7 +203,6 @@ class SimulationScene {
   }
 
   swapAnimationLoop(selected){
-    console.log(selected);
     switch (selected) {
       case "octTree":
         this.animationName = "octTree";

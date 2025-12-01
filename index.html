@@ -21,7 +21,7 @@
         <p id="currentSpeed"></p>
         <input type="range" min="0" max="100" value="1" step=".01" class="slider" id="speedModifierSlider">
         <p id="currentGravConstant"></p>
-        <input type="range" min="0" max="100" value="1" step=".0001" class="slider" id="currentGravConstantSlider">
+        <input type="range" min="1" max="2" value="1" step=".01" class="slider" id="currentGravConstantSlider">
         <div>
           Trail Length: 
           <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
@@ -203,7 +203,7 @@
       window.toggleHidingAll = toggleHidingAll;
 
       function updateGravConstant(){
-        gravSimScene.updateGravConstant(currentGravConstantSlider.value);
+        gravSimScene.updateGravConstant(currentGravConstantSlider.value * 6.67e-11);
       }
       currentGravConstantSlider.addEventListener('mousemove', updateGravConstant);
 
