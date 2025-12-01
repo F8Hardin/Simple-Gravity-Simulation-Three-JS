@@ -1,19 +1,22 @@
 import * as THREE from 'three';
 
 export class SolutionBase {
-    constructor({maxBodies = 1000, physBodies = [], frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}){
+    constructor({constantTimeStep = 1, maxBodies = 1000, physBodies = [], frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}){
         this.physBodies = physBodies;
         this.clock = new THREE.Clock();
         this.frameRate = frameRate;
         this.speedModifier = speedModifier;
         this.focusPoint = focusPoint;
         this.gravConstant = gravConstant;
+        this.variableTimeStep = false;
+        this.constantTimeStep = constantTimeStep;
 
         this.scene = scene;
         this.camera = camera;
         this.renderer = renderer;
         this.maxBodies = maxBodies;
 
+        this.accumulator = 0;
         this.cameraDisplacement = null;
     }
 
