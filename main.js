@@ -16,6 +16,7 @@ class SimulationScene {
     this.massMax = 1e12;
     this.massSizeMult = 1 / this.massMax;
     this.constantTimeStep = 1/244;
+    this.variableTimeStep = false;
     this.octTreeMaxBodies = 5000;
 
     //scene setup
@@ -72,11 +73,11 @@ class SimulationScene {
     switch ( this.animationName ) {
       case "octTree":
         console.log("Building Oct Tree Solution");
-        this.solution = new OctTree({constantTimeStep: this.constantTimeStep, maxBodies: this.octTreeMaxBodies, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 2 * this.maxSpawnRange * AUModifer, scene: this.pivot});
+        this.solution = new OctTree({variableTimeStep: this.variableTimeStep, constantTimeStep: this.constantTimeStep, maxBodies: this.octTreeMaxBodies, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 2 * this.maxSpawnRange * AUModifer, scene: this.pivot});
         break;
       default:
         console.log("Building Naive Solution...")
-        this.solution = new NaiveSolution({constantTimeStep: this.constantTimeStep, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, physBodies : this.physBodies, frameRate : this.frameRate, frameCount : this.frameCount, scene: this.scene, camera: this.camera, renderer: this.renderer, gravConstant: this.gravConstant});
+        this.solution = new NaiveSolution({variableTimeStep: this.variableTimeStep, constantTimeStep: this.constantTimeStep, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, physBodies : this.physBodies, frameRate : this.frameRate, frameCount : this.frameCount, scene: this.scene, camera: this.camera, renderer: this.renderer, gravConstant: this.gravConstant});
         break;
     }
 
