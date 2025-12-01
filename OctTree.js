@@ -16,8 +16,8 @@ class treeNode {
 }
 
 export default class OctTree extends SolutionBase {
-    constructor({maxBodies, forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}) {
-        super({maxBodies, physBodies, scene, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
+    constructor({constantTimeStep, maxBodies, forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}) {
+        super({constantTimeStep, maxBodies, physBodies, scene, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
         this.physBodies = physBodies;
         this.maxDepth = maxDepth;
         this.maxBodyCount = maxBodyCount;
@@ -174,32 +174,46 @@ export default class OctTree extends SolutionBase {
     }
 
     octTreeAnimateNaive() { //redraws tree every x frames
-      let clockDelta = this.clock.getDelta();
-      let timeSinceLastFrame = Math.min(clockDelta, 1/30);
-      this.frameRate = 1 / clockDelta;
-      this.frameCount += 1;
+        let clockDelta = this.clock.getDelta();
+        this.frameRate = 1 / clockDelta;
+        this.frameCount += 1;
 
-      this.resetAcceleration();
-      
-      if (this.updateOctTreeEveryFrames == this.frameCount){
-        this.frameCount = 0;
-        //console.log(this.focusPoint);
-        this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
-      }
-
-      if (this.speedModifier > 0){
-        this.traverseOctTree(this.rootNode);
-        for (let b of this.physBodies){
-          b.updatePhysics(timeSinceLastFrame * this.speedModifier);
+        if (this.updateOctTreeEveryFrames >= this.frameCount){
+            this.frameCount = 0;
+            this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
         }
-      }
 
-      this.renderer.render( this.scene, this.camera );
+        if (this.variableTimeStep){
+            this.resetAcceleration();
+
+            if (this.speedModifier > 0){
+                this.traverseOctTree(this.rootNode);
+                for (let b of this.physBodies){
+                b.updatePhysics(clockDelta * this.speedModifier);
+                }
+            }
+        } else {
+            this.accumulator += clockDelta;
+
+            while (this.accumulator >= this.constantTimeStep){
+                this.resetAcceleration();
+
+                if (this.speedModifier > 0){
+                    this.traverseOctTree(this.rootNode);
+                    for (let b of this.physBodies){
+                    b.updatePhysics(this.constantTimeStep * this.speedModifier);
+                    }
+                }
+
+                this.accumulator -= this.constantTimeStep;
+            }
+        }
+
+        this.renderer.render( this.scene, this.camera );
     }
 
     octTreeAnimateStatic(){ //static tree and updated bodies in nodes
       let clockDelta = this.clock.getDelta();
-      let timeSinceLastFrame = Math.min(clockDelta, 1/30);
       this.frameRate = 1 / clockDelta;
       this.frameCount += 1;
       this.resetAcceleration();
