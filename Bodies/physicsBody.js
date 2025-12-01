@@ -135,8 +135,6 @@ export default class PhysicsBody extends THREE.Mesh {
                 this.trailLine.geometry = geometry;
             }
         }
-
-        console.log(this.velocity);
     }
 
     semiImplicit(timeSinceLastFrame){

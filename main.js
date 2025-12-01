@@ -11,12 +11,11 @@ class SimulationScene {
     this.maxSpawnRange = 1;
     this.bounceEffect = .2;
     this.gravConstant = 6.67e-11;
-    this.bodyCount = 25;
-    //this.massMin = 938e+18; //asteroid
-    //this.massMax = 5.972e+24; //earth
+    this.bodyCount = 250;
     this.massMin = 1e5;
     this.massMax = 1e12;
     this.massSizeMult = 1 / this.massMax;
+    this.constantTimeStep = 1/244;
 
     //scene setup
     this.cameraStart = 250;
