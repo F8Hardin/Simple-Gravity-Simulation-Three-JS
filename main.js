@@ -4,6 +4,7 @@ import Star from './Bodies/star.js'
 import { randFloat } from 'three/src/math/MathUtils.js';
 import OctTree from './OctTree.js';
 import NaiveSolution from './naive.js';
+import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 
 class SimulationScene {
   constructor () {
@@ -18,6 +19,8 @@ class SimulationScene {
     this.constantTimeStep = 1/244;
     this.variableTimeStep = false;
     this.octTreeMaxBodies = 5000;
+
+    this.XRMode = true;
 
     //scene setup
     this.cameraStart = 250;
@@ -68,7 +71,14 @@ class SimulationScene {
     this.pivot = new THREE.Group();
     this.sceneInit();
     this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setSize( window.innerWidth, window.innerHeight );
+
+    if (this.XRMode){
+      this.renderer = new THREE.WebGLRenderer({ antialias: true });
+      this.renderer.xr.enabled = true;
+      document.body.appendChild(VRButton.createButton(this.renderer));
+    } else {
+      this.renderer.setSize( window.innerWidth, window.innerHeight );
+    }
 
     switch ( this.animationName ) {
       case "octTree":
