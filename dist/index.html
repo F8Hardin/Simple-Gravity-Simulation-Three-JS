@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Gravity Between Masses Sim</title>
+    <style>
+      body { margin: 0; }
+    </style>
+    <script type="module" crossorigin src="/assets/index-B_s1C-1f.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CPfjp-ha.css">
+  </head>
+  <body>
+    <div class="FullAccessPanel">
+      <div>
+        Hide All: 
+        <input type="checkbox" id="hideAllCheckbox" onclick="toggleHidingAll()">
+      </div>
+      <div id="ControlAccessPanel">
+        <div class="controlInfoPanel">
+          <p id="frameRate"></p>
+        </div>
+        <p id="currentSpeed"></p>
+        <input type="range" min="0" max="5" value="1" step=".01" class="slider" id="speedModifierSlider">
+        <p id="currentGravConstant"></p>
+        <input type="range" min="1" max="2" value="1" step=".01" class="slider" id="currentGravConstantSlider">
+        <div>
+          Trail Length: 
+          <input type="range" min="1" max="300" value="50" class="slider" id="trailSlider">
+        </div>
+        <div>
+          Trail visibilty: 
+          <input type="checkbox" id="showTrails" onclick="toggleTrails()">
+        </div>
+        <div>
+          Camera Rotate Speed:
+          <input type="range" id="rotateSpeed" min=".005" max=".02" step=".001">
+        </div>
+        <div class="collisionTreeControls">
+          Collision Tree Visibility: 
+          <input type="checkbox" id="showOctTree" onclick="toggleOctTree()">
+          <p id="collisionTreeDepthText"></p>
+          <input type="range" min="0" max="20" value="50" class="slider" id="collisionTreeDepth">
+        </div> 
+        <div>
+          Real Time Simulation: 
+          <input type="checkbox" id="toggleTimeStep" onclick="toggleTimeStep()">
+        </div>
+        <div>
+          <p id="currentTimeStep"></p>
+          <input type="range" id="timeStep" min="0.00409836065" max="1" class="slider" step=".001">
+        </div>
+        <p id="bounceEffect"></p>
+        <input type="range" min="0" max="2" value="0" step=".01" class="slider" id="bounceEffectSlider">
+        <select id="animationLoops">
+          <option value="octTree">OctTree</option>
+          <option value="bruteForce">Brute Force</option>
+        </select>
+        <div>
+          Sandbox Controls: 
+          <input type="checkbox" id="sandBoxCheckBox" onclick="toggleSandBoxMode()">
+        </div>
+        <div>
+          Desired Scene: 
+          <select id="sceneSelection">
+            <option value="Empty Scene">Empty Scene</option>
+          </select>
+          <div id="controlSceneStart">
+            <p id="bodyCount"></p>
+            <input type="text" min="0" max="5000" value="50" step="1" class="textInput" id="bodyCountTextBox">
+            <p id="spawnRange"></p>
+            <input type="range" min=".01" max="50" value="1" step=".5" class="slider" id="spawnRangeSlider">
+          </div>
+        </div>
+        <p  onclick="restartSim()"> Click here to refresh </p>
+      </div>
+    </div>
+  </body>
+</html>
