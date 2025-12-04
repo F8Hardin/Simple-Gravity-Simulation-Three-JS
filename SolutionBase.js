@@ -16,6 +16,7 @@ export class SolutionBase {
         this.renderer = renderer;
         this.maxBodies = maxBodies;
 
+        this.lastClockDelta = 1;
         this.accumulator = 0;
         this.cameraDisplacement = null;
     }
