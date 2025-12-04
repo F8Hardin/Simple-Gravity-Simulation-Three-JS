@@ -75,7 +75,7 @@ class SimulationScene {
     if (this.XRMode){
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.xr.enabled = true;
-      document.body.appendChild(VRButton.createButton(this.renderer));
+      document.body.appendChild(ARButton.createButton(this.renderer));
     } else {
       this.renderer.setSize( window.innerWidth, window.innerHeight );
     }
