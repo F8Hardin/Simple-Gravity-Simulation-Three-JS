@@ -7,9 +7,9 @@ export default class NaiveSolution extends SolutionBase{
     }
 
     animate() {
-        let clockDelta = this.clock.getDelta();
-        let timeSinceLastFrame = Math.min(clockDelta, 1/30);
-        this.frameRate = 1 / clockDelta;
+        this.lastClockDelta = this.clock.getDelta();
+        let timeSinceLastFrame = Math.min(this.lastClockDelta, 1/30);
+        this.frameRate = 1 / this.lastClockDelta;
 
         if (this.variableTimeStep){
             this.resetAcceleration();
@@ -26,9 +26,9 @@ export default class NaiveSolution extends SolutionBase{
                 b.updatePhysics(timeSinceLastFrame * this.speedModifier);
             }
         } else {
-            this.accumulator += clockDelta;
+            this.accumulator += this.lastClockDelta;
 
-            while (this.accumulator >= this.constantTimeStep){
+            if (this.accumulator >= this.constantTimeStep){
                 this.resetAcceleration();
 
                 for (let i = 0; i < this.physBodies.length; i++) {

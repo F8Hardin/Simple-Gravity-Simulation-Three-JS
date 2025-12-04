@@ -38,10 +38,10 @@
           Collision Tree Visibility: 
           <input type="checkbox" id="showOctTree" onclick="toggleOctTree()">
           <p id="collisionTreeDepthText"></p>
-          <input type="range" min="0" max="8" value="50" class="slider" id="collisionTreeDepth">
+          <input type="range" min="0" max="20" value="50" class="slider" id="collisionTreeDepth">
         </div> 
         <div>
-          Variable Time Step: 
+          Real Time Simulation: 
           <input type="checkbox" id="toggleTimeStep" onclick="toggleTimeStep()">
         </div>
         <div>
@@ -67,7 +67,7 @@
             <p id="bodyCount"></p>
             <input type="text" min="0" max="5000" value="50" step="1" class="textInput" id="bodyCountTextBox">
             <p id="spawnRange"></p>
-            <input type="range" min=".5" max="50" value="1" step=".5" class="slider" id="spawnRangeSlider">
+            <input type="range" min=".01" max="50" value="1" step=".5" class="slider" id="spawnRangeSlider">
           </div>
         </div>
         <p  onclick="restartSim()"> Click here to refresh </p>
@@ -136,7 +136,7 @@
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
         document.getElementById("collisionTreeDepthText").textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
         document.getElementById("currentGravConstant").textContent = "Current Gravity Constant: " + gravSimScene.gravConstant;
-        document.getElementById("currentTimeStep").textContent = "Current Time Step: " + roundToDecimalPlaces(timeStep.value, 4) + "s";
+        document.getElementById("currentTimeStep").textContent = "Simulation Time Per Frame: " + roundToDecimalPlaces(timeStep.value, 4); //+ " Simulation Time Per Second:" + (gravSimScene.solution.constantTimeStep * gravSimScene.solution.lastClockDelta * gravSimScene.getFramerate());
       }
       setInterval(updateSimData, 100);
 

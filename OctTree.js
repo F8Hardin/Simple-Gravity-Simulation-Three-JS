@@ -160,25 +160,20 @@ export default class OctTree extends SolutionBase {
         this.debugBoxes.push(lines);
     }
 
-    animate() {
-        if (this.naiveAnimate)
-            this.octTreeAnimateNaive();
-        else
-            this.octTreeAnimateBarnesHut();
-
-        this.cameraTrackFocus();
-    }
-
-    octTreeAnimateBarnesHut(){
+    barnesHuttTraverse(){
         console.log("Barnes hut not yet implemented.");
+        //barnes hutt
+        //recreate tree storing center of mass for each node
+        //for each body, traverse tree -> close nodes use bodies of the node, far nodes use center of mass
+        //update physics
     }
 
-    octTreeAnimateNaive() { //redraws tree every x frames
-        let clockDelta = this.clock.getDelta();
-        this.frameRate = 1 / clockDelta;
+    animate() {
+        this.lastClockDelta = this.clock.getDelta();
+        this.frameRate = 1 / this.lastClockDelta;
         this.frameCount += 1;
 
-        if (this.updateOctTreeEveryFrames >= this.frameCount){
+        if (this.updateOctTreeEveryFrames >= this.frameCount && this.naiveAnimate){
             this.frameCount = 0;
             this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
         }
@@ -187,19 +182,25 @@ export default class OctTree extends SolutionBase {
             this.resetAcceleration();
 
             if (this.speedModifier > 0){
-                this.traverseOctTree(this.rootNode);
+                if (this.naiveAnimate)
+                    this.naiveTraverseOctTree(this.rootNode);
+                // else
+                //     this.barnesHuttTraverse();
                 for (let b of this.physBodies){
-                    b.updatePhysics(clockDelta * this.speedModifier);
+                    b.updatePhysics(this.lastClockDelta * this.speedModifier);
                 }
             }
         } else {
-            this.accumulator += clockDelta;
+            this.accumulator += this.lastClockDelta;
 
-            while (this.accumulator >= this.constantTimeStep){
+            if (this.accumulator >= this.constantTimeStep){ //try if instead of while, or only allow X updates before moving on -> or use both
                 this.resetAcceleration();
 
                 if (this.speedModifier > 0){
-                    this.traverseOctTree(this.rootNode);
+                    if (this.naiveAnimate)
+                        this.naiveTraverseOctTree(this.rootNode);
+                    // else
+                    //     this.barnesHuttTraverse();
                     for (let b of this.physBodies){
                         b.updatePhysics(this.constantTimeStep * this.speedModifier);
                     }
@@ -209,20 +210,11 @@ export default class OctTree extends SolutionBase {
             }
         }
 
+        this.cameraTrackFocus();
         this.renderer.render( this.scene, this.camera );
     }
 
-    octTreeAnimateStatic(){ //static tree and updated bodies in nodes
-      let clockDelta = this.clock.getDelta();
-      this.frameRate = 1 / clockDelta;
-      this.frameCount += 1;
-      this.resetAcceleration();
-
-      //new logic here
-      this.renderer.render( this.scene, this.camera );
-    }
-
-    traverseOctTree(currentNode, nodeRemainingBodies = [], allNodesThisLevel = []){ //review for duplicates
+    naiveTraverseOctTree(currentNode, nodeRemainingBodies = [], allNodesThisLevel = []){ //traverses and performs gravity and collision checks on bodies that share a node, bodies of neighboring nodes, or remaining bodies -> not accurate as far away bodies have 0 affect
       //compare current nodes bodies to its own bodies
       for (let j = 0; j < currentNode.physBodies.length; j++){
         let body1 = currentNode.physBodies[j];
@@ -245,7 +237,7 @@ export default class OctTree extends SolutionBase {
       //traverse any children
       let newNodeRemainingBodies = nodeRemainingBodies.length ? nodeRemainingBodies.concat(currentNode.physBodies) : currentNode.physBodies.slice();
       for (let i = 0; i < currentNode.children.length; i++){
-        this.traverseOctTree(currentNode.children[i], newNodeRemainingBodies, currentNode.children);
+        this.naiveTraverseOctTree(currentNode.children[i], newNodeRemainingBodies, currentNode.children);
       }
 
       //compare to current nodes bodies neighboring nodes bodies
