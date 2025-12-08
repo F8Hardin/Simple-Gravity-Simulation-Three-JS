@@ -207,6 +207,7 @@ export default class OctTree extends SolutionBase {
                 }
 
                 this.accumulator -= this.constantTimeStep;
+                this.updatePhyicsClockDelta();
             }
         }
 

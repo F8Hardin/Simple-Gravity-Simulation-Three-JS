@@ -46,7 +46,7 @@
         </div>
         <div>
           <p id="currentTimeStep"></p>
-          <input type="range" id="timeStep" min="0.00409836065" max="1" class="slider" step=".001">
+          <input type="range" id="timeStep" min=".0001" max="1" class="slider" step=".001">
         </div>
         <p id="bounceEffect"></p>
         <input type="range" min="0" max="2" value="0" step=".01" class="slider" id="bounceEffectSlider">
@@ -129,6 +129,7 @@
       window.restartSim = restartSim;
 
       function updateSimData() {
+        let simStepPerSecond = roundToDecimalPlaces(1 / gravSimScene.solution.physicsClockDelta, 2);
         document.getElementById("frameRate").textContent = "FPS: " + gravSimScene.getFramerate();
         document.getElementById("bodyCount").textContent = "Body Count: " + bodyCountTextBox.value;
         document.getElementById("spawnRange").textContent = "Spawn Range (AU): " + spawnRangeSlider.value;
@@ -136,7 +137,7 @@
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
         document.getElementById("collisionTreeDepthText").textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
         document.getElementById("currentGravConstant").textContent = "Current Gravity Constant: " + gravSimScene.gravConstant;
-        document.getElementById("currentTimeStep").textContent = "Simulation Time Per Frame: " + roundToDecimalPlaces(timeStep.value, 4); //+ " Simulation Time Per Second:" + (gravSimScene.solution.constantTimeStep * gravSimScene.solution.lastClockDelta * gravSimScene.getFramerate());
+        document.getElementById("currentTimeStep").textContent = "Constant Time Step: " + roundToDecimalPlaces(timeStep.value, 4) + ", Simulation Steps/Second: " + simStepPerSecond + ", Simulation Seconds/Second: " + (simStepPerSecond * timeStep.value);
       }
       setInterval(updateSimData, 100);
 
