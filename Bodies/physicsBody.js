@@ -1,6 +1,9 @@
 import * as THREE from 'three';
 
+const AU = 1.469e+11;
 export const AUModifer = 100;
+export const METERS_PER_UNIT = 1;
+console.log("Meters per unit", METERS_PER_UNIT);
 
 export default class PhysicsBody extends THREE.Mesh {
     constructor ({maxSteps = 10, collisionType = "PCFormula", integrationType = "semi-implicit", root, bounceEffect = 0, mass = 1, trailColor = "white", showTrail = false, trailLength = 100, position = [0, 0, 0], initialVelocity = [0, 0, 0], material = new THREE.MeshStandardMaterial({ color: 0xffffff }), geometry = new THREE.SphereGeometry(1, 32, 16)}) {
@@ -122,7 +125,7 @@ export default class PhysicsBody extends THREE.Mesh {
             this.positions.push(this.root.worldToLocal(wp.clone()));
             let overflow = this.positions.length - this.trailLength;
             if (overflow > 0) {
-            this.positions.splice(0, overflow);
+                this.positions.splice(0, overflow);
             }
 
             const geometry = new THREE.BufferGeometry().setFromPoints(this.positions);
@@ -135,6 +138,8 @@ export default class PhysicsBody extends THREE.Mesh {
                 this.trailLine.geometry = geometry;
             }
         }
+
+        //console.log(this.velocity);
     }
 
     semiImplicit(timeSinceLastFrame){
