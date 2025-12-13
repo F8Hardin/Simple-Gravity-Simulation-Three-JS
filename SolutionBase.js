@@ -64,6 +64,22 @@ export class SolutionBase {
         body2.acceleration[2] += (body2AccelerationZ / METERS_PER_UNIT);
     }
 
+    checkGravityWithNode(body1, centerOfNodeMass, mass){
+        let dx = centerOfNodeMass.x - body1.position.x;
+        let dy = centerOfNodeMass.y - body1.position.y;
+        let dz = centerOfNodeMass.z - body1.position.z;
+
+        let distance = Math.sqrt(dx * dx + dy * dy + dz * dz) * METERS_PER_UNIT;
+
+        let body1AccelerationX = this.gravConstant * (dx / (distance ** 3)) * mass;
+        let body1AccelerationY = this.gravConstant * (dy / (distance ** 3)) * mass;
+        let body1AccelerationZ = this.gravConstant * (dz / (distance ** 3)) * mass;
+
+        body1.acceleration[0] += (body1AccelerationX / METERS_PER_UNIT);
+        body1.acceleration[1] += (body1AccelerationY / METERS_PER_UNIT);
+        body1.acceleration[2] += (body1AccelerationZ / METERS_PER_UNIT);
+    }
+
     setSpeedModifier(newValue){
         this.speedModifier = newValue;
     }
