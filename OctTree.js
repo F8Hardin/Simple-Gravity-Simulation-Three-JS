@@ -186,7 +186,7 @@ export default class OctTree extends SolutionBase {
         this.resetAcceleration();
 
         for(let i = 0; i < this.physBodies.length; i++){
-            this.recursiveGravity(this.physBodies[0], this.rootNode);
+            this.recursiveGravity(this.physBodies[i], this.rootNode);
         }
     }
 
