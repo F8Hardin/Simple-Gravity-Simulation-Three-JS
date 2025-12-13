@@ -37,6 +37,11 @@ export class SolutionBase {
     }
 
     checkCollisionAndGravity(body1, body2) {
+        this.checkGravity(body1, body2);
+        body1.checkCollision(body2);
+    }
+
+    checkGravity(body1, body2){
         let dx = body2.position.x - body1.position.x;
         let dy = body2.position.y - body1.position.y;
         let dz = body2.position.z - body1.position.z;
@@ -57,8 +62,6 @@ export class SolutionBase {
         body2.acceleration[0] += (body2AccelerationX / METERS_PER_UNIT);
         body2.acceleration[1] += (body2AccelerationY / METERS_PER_UNIT);
         body2.acceleration[2] += (body2AccelerationZ / METERS_PER_UNIT);
-
-        body1.checkCollision(body2);
     }
 
     setSpeedModifier(newValue){

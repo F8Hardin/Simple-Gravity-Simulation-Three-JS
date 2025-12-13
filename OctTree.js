@@ -12,6 +12,8 @@ class treeNode {
         this.depth = depth;
         this.position = position;
         this.length = length;
+        this.totalMass = 0;
+        this.massMoment = null;
     }
 }
 
@@ -25,10 +27,13 @@ export default class OctTree extends SolutionBase {
         this.visibleTree = visibleTree;
         this.scene = scene;
 
+        this.maxCellDistanceTheta = .6;
+        this.softeningSq = 0;
+
         this.debugBoxes = [];
         this.updateOctTreeEveryFrames = updateOctTreeEveryFrames ?? 30;
         this.rootNode = new treeNode({physBodies: this.physBodies, length: this.rootRange})
-        this.naiveAnimate = true;
+        this.naiveAnimate = false;
         this.forceMaxChildren = forceMaxChildren ?? false;
 
         this.frameCount = 0;
@@ -101,11 +106,19 @@ export default class OctTree extends SolutionBase {
             }
 
             let childBuckets = [[], [], [], [], [], [], [], []]; //8 for our new nodes
+            let childAccum = Array.from({ length: 8 }, () => ({
+                mass: 0,
+                massMoment: new THREE.Vector3()
+            }));
+            let parentMass = 0;
+            let parentMassMoment = new THREE.Vector3(0, 0, 0);
             let remaining = []; //in between nodes
 
             //currently allows for straddlers - watch for bouncing between sibling nodes, or add epsilon to make fit exactly one child
             for (let i = 0; i < someTreeNode.physBodies.length; i++){
                 let placed = false;
+                parentMass += someTreeNode.physBodies[i].mass;
+                parentMassMoment.add(someTreeNode.physBodies[i].position.clone().multiplyScalar(someTreeNode.physBodies[i].mass));
                 for (let j = 0; j < someTreeNode.children.length; j++){ //find where it fits - NOTE: phys body position is three.js position, children position is a list
                     let distanceX = Math.abs(someTreeNode.physBodies[i].position.x - someTreeNode.children[j].position[0]) + someTreeNode.physBodies[i].radius;
                     let distanceY = Math.abs(someTreeNode.physBodies[i].position.y - someTreeNode.children[j].position[1]) + someTreeNode.physBodies[i].radius;
@@ -114,6 +127,8 @@ export default class OctTree extends SolutionBase {
                     let half = someTreeNode.children[j].length / 2
                     if (distanceX <= half && distanceY <= half && distanceZ <= half){
                         childBuckets[j].push(someTreeNode.physBodies[i]);
+                        childAccum[j].mass += someTreeNode.physBodies[i].mass;
+                        childAccum[j].massMoment.add(someTreeNode.physBodies[i].position.clone().multiplyScalar(someTreeNode.physBodies[i].mass));
                         placed = true; //mark as placed
                         break; //move on to next body
                     }
@@ -125,13 +140,17 @@ export default class OctTree extends SolutionBase {
 
             //store bodies in proper node and build subtree, storing remaining back in current node
             someTreeNode.physBodies = remaining;
+            someTreeNode.totalMass = parentMass;
+            someTreeNode.massMoment = parentMassMoment;
             for (let k = 0; k < someTreeNode.children.length; k++){
                 someTreeNode.children[k].physBodies = childBuckets[k];
+                someTreeNode.children[k].totalMass = childAccum[k].mass;
+                someTreeNode.children[k].massMoment = childAccum[k].massMoment;
                 if (someTreeNode.children[k].physBodies.length > 0 || this.forceMaxChildren){
                     this.buildTree(someTreeNode.children[k]);
                 }
             }
-        }
+        } 
     }
 
     clearBoxes() {
@@ -161,11 +180,48 @@ export default class OctTree extends SolutionBase {
     }
 
     barnesHuttTraverse(){
-        console.log("Barnes hut not yet implemented.");
-        //barnes hutt
-        //recreate tree storing center of mass for each node
-        //for each body, traverse tree -> close nodes use bodies of the node, far nodes use center of mass
-        //update physics
+        this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
+        console.log("TOTAL SYSTEM MASS:", this.rootNode.totalMass);
+
+        this.resetAcceleration();
+
+        for(let i = 0; i < this.physBodies.length; i++){
+            this.recursiveGravity(this.physBodies[0], this.rootNode);
+        }
+    }
+
+    recursiveGravity(body, node){
+        //get distance from center of mass
+        console.log(node);
+        let centerOfNodeMass = node.massMoment.clone().divideScalar(node.mass);
+        let dx = centerOfNodeMass.x - body.position.x;
+        let dy = centerOfNodeMass.y - body.position.y;
+        let dz = centerOfNodeMass.z - body.position.z;
+        let distSq = dx * dx + dy * dy + dz * dz + this.softeningSq;
+        let dist = Math.sqrt(distSq);
+
+        let half = node.length / 2;
+        let contained = Math.abs(body.position.x - node.position[0]) <= half && Math.abs(body.position.y - node.position[1]) <= half && Math.abs(body.position.z - node.position[2]) <= half;
+     
+        //check if internal v external
+        if (node.children.length > 0){ //internal
+            if ((node.length / dist) < this.maxCellDistanceTheta && !contained){ //far away
+                let body2 = {
+                    mass: node.mass,
+                    position: centerOfNodeMass
+                };
+                this.checkGravity(body, body2)
+            } else { //nearby or contained
+                for (let j = 0; j < node.children.length; j++){
+                    this.recursiveGravity(body, node.children[j]);
+                }
+            }
+        } else { //external
+            for (let i = 0; i < node.physBodies.length; i++){
+                if (body !== node.physBodies[i])
+                    this.checkCollisionAndGravity(body, node.physBodies[i]);
+            }
+        }
     }
 
     animate() {
@@ -184,8 +240,8 @@ export default class OctTree extends SolutionBase {
             if (this.speedModifier > 0){
                 if (this.naiveAnimate)
                     this.naiveTraverseOctTree(this.rootNode);
-                // else
-                //     this.barnesHuttTraverse();
+                else
+                    this.barnesHuttTraverse();
                 for (let b of this.physBodies){
                     b.updatePhysics(this.lastClockDelta * this.speedModifier);
                 }
@@ -199,8 +255,8 @@ export default class OctTree extends SolutionBase {
                 if (this.speedModifier > 0){
                     if (this.naiveAnimate)
                         this.naiveTraverseOctTree(this.rootNode);
-                    // else
-                    //     this.barnesHuttTraverse();
+                    else
+                        this.barnesHuttTraverse();
                     for (let b of this.physBodies){
                         b.updatePhysics(this.constantTimeStep * this.speedModifier);
                     }
