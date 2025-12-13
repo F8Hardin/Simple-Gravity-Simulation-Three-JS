@@ -76,9 +76,8 @@ class SimulationScene {
       this.renderer = new THREE.WebGLRenderer({ antialias: true });
       this.renderer.xr.enabled = true;
       document.body.appendChild(ARButton.createButton(this.renderer));
-    } else {
-      this.renderer.setSize( window.innerWidth, window.innerHeight );
     }
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
 
     switch ( this.animationName ) {
       case "octTree":
