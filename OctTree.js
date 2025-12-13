@@ -12,7 +12,7 @@ class treeNode {
         this.depth = depth;
         this.position = position;
         this.length = length;
-        this.totalMass = 0;
+        this.mass = 0;
         this.massMoment = null;
     }
 }
@@ -140,17 +140,28 @@ export default class OctTree extends SolutionBase {
 
             //store bodies in proper node and build subtree, storing remaining back in current node
             someTreeNode.physBodies = remaining;
-            someTreeNode.totalMass = parentMass;
+            someTreeNode.mass = parentMass;
             someTreeNode.massMoment = parentMassMoment;
             for (let k = 0; k < someTreeNode.children.length; k++){
                 someTreeNode.children[k].physBodies = childBuckets[k];
-                someTreeNode.children[k].totalMass = childAccum[k].mass;
+                someTreeNode.children[k].mass = childAccum[k].mass;
                 someTreeNode.children[k].massMoment = childAccum[k].massMoment;
                 if (someTreeNode.children[k].physBodies.length > 0 || this.forceMaxChildren){
                     this.buildTree(someTreeNode.children[k]);
                 }
             }
-        } 
+        } else {
+            let mass = 0;
+            let moment = new THREE.Vector3();
+
+            for (let b of someTreeNode.physBodies) {
+                mass += b.mass;
+                moment.add(b.position.clone().multiplyScalar(b.mass));
+            }
+
+            someTreeNode.mass = mass;
+            someTreeNode.massMoment = moment;
+        }
     }
 
     clearBoxes() {
@@ -181,7 +192,7 @@ export default class OctTree extends SolutionBase {
 
     barnesHuttTraverse(){
         this.focusPoint ? this.buildTree(this.rootNode, [this.focusPoint.position.x, this.focusPoint.position.y, this.focusPoint.position.z]) : this.buildTree(this.rootNode, [0, 0, 0]);
-        console.log("TOTAL SYSTEM MASS:", this.rootNode.totalMass);
+        console.log("TOTAL SYSTEM MASS:", this.rootNode.mass);
 
         this.resetAcceleration();
 
