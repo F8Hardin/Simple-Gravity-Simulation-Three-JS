@@ -208,31 +208,25 @@ export default class OctTree extends SolutionBase {
                 this.checkCollisionAndGravity(body, other);
         }
 
-        if (node.mass !== 0){
-            //get distance from center of mass
-            let centerOfNodeMass = node.massMoment.clone().divideScalar(node.mass);
-            let dx = centerOfNodeMass.x - body.position.x;
-            let dy = centerOfNodeMass.y - body.position.y;
-            let dz = centerOfNodeMass.z - body.position.z;
-            let distSq = dx * dx + dy * dy + dz * dz + this.softeningSq;
-            let dist = Math.sqrt(distSq);
-
-            let half = node.length / 2;
-            let contained = Math.abs(body.position.x - node.position[0]) <= half && Math.abs(body.position.y - node.position[1]) <= half && Math.abs(body.position.z - node.position[2]) <= half;
+        if (node.mass === 0) return;
         
-            //check if internal v external
-            if (node.children.length > 0){ //internal
-                if ((node.length / dist) < this.maxCellDistanceTheta && !contained){ //far away
-                    this.checkGravityWithNode(body, centerOfNodeMass, node.mass);
-                } else { //nearby or contained
-                    for (let j = 0; j < node.children.length; j++){
-                        this.recursiveGravity(body, node.children[j]);
-                    }
-                }
-            } else { //external
-                for (let i = 0; i < node.physBodies.length; i++){
-                    if (body !== node.physBodies[i])
-                        this.checkCollisionAndGravity(body, node.physBodies[i]);
+        //get distance from center of mass
+        let centerOfNodeMass = node.massMoment.clone().divideScalar(node.mass);
+        let dx = centerOfNodeMass.x - body.position.x;
+        let dy = centerOfNodeMass.y - body.position.y;
+        let dz = centerOfNodeMass.z - body.position.z;
+        let distSq = dx * dx + dy * dy + dz * dz + this.softeningSq;
+
+        let half = node.length / 2;
+        let contained = Math.abs(body.position.x - node.position[0]) <= half && Math.abs(body.position.y - node.position[1]) <= half && Math.abs(body.position.z - node.position[2]) <= half;
+    
+        //check if internal v external
+        if (node.children.length > 0){ //internal
+            if ((node.length * node.length) < (this.maxCellDistanceTheta * this.maxCellDistanceTheta * distSq) && !contained){ //far away
+                this.checkGravityWithNode(body, centerOfNodeMass, node.mass);
+            } else { //nearby or contained
+                for (let j = 0; j < node.children.length; j++){
+                    this.recursiveGravity(body, node.children[j]);
                 }
             }
         }
