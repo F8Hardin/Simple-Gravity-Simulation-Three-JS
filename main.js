@@ -30,6 +30,7 @@ class SimulationScene {
     this.renderer = null;
     this.focusPoint = null;
     this.physBodies = [];
+    this.useMassMax = true;
     //need to organize names with frontend names somehow. perhaps using the json files that define the scene
     this.animationName = "octTree"
     this.frameRate = 0;
@@ -106,7 +107,14 @@ class SimulationScene {
       console.log("Preparing default scene");
       //always the first body spawned
       if (this.bodyCount != 0){
-        let randomMass = randFloat(this.massMin, this.massMax);
+        let randomMass = 1; //randFloat(this.massMin, this.massMax);
+
+        if(this.useMassMax){
+          randomMass = this.massMax;
+        } else {
+          randomMass = randFloat(this.massMin, this.massMax);
+        }
+
         let size = randomMass * this.massSizeMult;
         this.focusPoint = new Star({ root: this.pivot, mass: randomMass, bounceEffect: this.bounceEffect, trailColor: "#f2df07", showTrail: this.showTrails, position : [0, 0, 0], geometry : new THREE.SphereGeometry(size, 32, 16), material : new THREE.MeshStandardMaterial({color : "#f2df07"}), ambientLight : new THREE.AmbientLight(0xffffff, 1)});
         this.physBodies.push(this.focusPoint);
@@ -114,7 +122,14 @@ class SimulationScene {
       for (let i = 0; i < this.bodyCount - 1; i++) { //- 1 to include sun AKA starting focusPoint
         let color = new THREE.Color( 0xffffff );
         color.setHex( Math.random() * 0xffffff );
-        let randomMass = randFloat(this.massMin, this.massMax);
+        let randomMass = 1; //randFloat(this.massMin, this.massMax);
+
+        if(this.useMassMax){
+          randomMass = this.massMax;
+        } else {
+          randomMass = randFloat(this.massMin, this.massMax);
+        }
+
         let size = randomMass * this.massSizeMult;
         this.physBodies.push(new PhysicsBody({ root: this.pivot, mass: randomMass, bounceEffect: this.bounceEffect, trailColor: color, showTrail: this.showTrails, trailLength: this.trailLengths, position: [randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange), randFloat(-this.maxSpawnRange, this.maxSpawnRange)], geometry: new THREE.SphereGeometry(size, 32, 16), material: new THREE.MeshStandardMaterial({ color: color }) }));
       }
