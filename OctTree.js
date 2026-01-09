@@ -51,6 +51,8 @@ export default class OctTree extends SolutionBase {
             }
 
             this.rootNode.children = [];
+            this.rootNode.mass = 0;
+            this.rootNode.massMoment.set(0, 0, 0);
             this.rootNode.physBodies = this.physBodies;
         }
 
@@ -127,9 +129,9 @@ export default class OctTree extends SolutionBase {
             }
 
             //build subtrees
-            if (someTreeNode.mass > 0){
-                someTreeNode.mass = 0;
-            }
+            // if (someTreeNode.mass > 0){
+            //     someTreeNode.mass = 0;
+            // }
             for (let k = 0; k < someTreeNode.children.length; k++){
                 if (someTreeNode.children[k].physBodies.length > 0){
                     var nodeData = this.buildTree(someTreeNode.children[k]);
@@ -142,6 +144,7 @@ export default class OctTree extends SolutionBase {
             someTreeNode.physBodies = remaining;
             for (let b of remaining){
                 someTreeNode.mass += b.mass;
+                someTreeNode.massMoment.add(b.position.clone().multiplyScalar(b.mass));
             }
             return [someTreeNode.mass, someTreeNode.massMoment];
 
@@ -199,12 +202,6 @@ export default class OctTree extends SolutionBase {
     }
 
     recursiveGravity(body, node){
-        for (let i = 0; i < node.physBodies.length; i++) {
-            let other = node.physBodies[i];
-            if (other !== body)
-                this.checkCollisionAndGravity(body, other);
-        }
-
         if (node.mass === 0) return;
         
         //get distance from center of mass
@@ -217,11 +214,15 @@ export default class OctTree extends SolutionBase {
         let half = node.length / 2;
         let contained = Math.abs(body.position.x - node.position[0]) <= half && Math.abs(body.position.y - node.position[1]) <= half && Math.abs(body.position.z - node.position[2]) <= half;
     
-        //check if internal v external
-        if (node.children.length > 0){ //internal
-            if ((node.length * node.length) < (this.maxCellDistanceTheta * this.maxCellDistanceTheta * distSq) && !contained){ //far away
-                this.checkGravityWithNode(body, centerOfNodeMass, node.mass);
-            } else { //nearby or contained
+        if ((node.length * node.length) < (this.maxCellDistanceTheta * this.maxCellDistanceTheta * distSq) && !contained){ //far away
+            this.checkGravityWithNode(body, centerOfNodeMass, node.mass);
+        } else { //nearby or contained
+            for (let i = 0; i < node.physBodies.length; i++) {
+                let other = node.physBodies[i];
+                if (other !== body)
+                    this.checkCollisionAndGravity(body, other);
+            }
+            if (node.children.length > 0){ //internal
                 for (let j = 0; j < node.children.length; j++){
                     this.recursiveGravity(body, node.children[j]);
                 }
