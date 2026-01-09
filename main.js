@@ -37,12 +37,10 @@ class SimulationScene {
     this.frameCount = 0;
 
     //octTree setup
-    this.maxDepth = 3;
     this.rootRange = 1.5 * this.maxSpawnRange * AUModifer;
-    this.maxBodyCount = 8;
+    this.maxBodyCount = 1;
     this.treeVisibility = false;
     this.updateOctTreeEveryFrames = 1;
-    this.forceMaxChildren = false;
     
     //controls
     this.scrollModifier = 50;
@@ -83,7 +81,7 @@ class SimulationScene {
     switch ( this.animationName ) {
       case "octTree":
         console.log("Building Oct Tree Solution");
-        this.solution = new OctTree({variableTimeStep: this.variableTimeStep, constantTimeStep: this.constantTimeStep, maxBodies: this.octTreeMaxBodies, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, forceMaxChildren: this.forceMaxChildren, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, maxDepth: this.maxDepth, rootRange: 2 * this.maxSpawnRange * AUModifer, scene: this.pivot});
+        this.solution = new OctTree({variableTimeStep: this.variableTimeStep, constantTimeStep: this.constantTimeStep, maxBodies: this.octTreeMaxBodies, updateOctTreeEveryFrames: this.updateOctTreeEveryFrames, focusPoint: this.focusPoint, renderer: this.renderer, camera: this.camera, gravConstant: this.gravConstant, frameRate : this.frameRate, frameCount : this.frameCount, speedModifier: this.speedModifier, cameraStart: this.cameraStart, focusPoint: this.focusPoint, visibleTree: this.treeVisibility, physBodies: this.physBodies, maxBodyCount: this.maxBodyCount, rootRange: 2 * AUModifer, scene: this.pivot});
         break;
       default:
         console.log("Building Naive Solution...")

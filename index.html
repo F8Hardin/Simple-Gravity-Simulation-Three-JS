@@ -37,8 +37,6 @@
         <div class="collisionTreeControls">
           Collision Tree Visibility: 
           <input type="checkbox" id="showOctTree" onclick="toggleOctTree()">
-          <p id="collisionTreeDepthText"></p>
-          <input type="range" min="0" max="20" value="50" class="slider" id="collisionTreeDepth">
         </div> 
         <div>
           Real Time Simulation: 
@@ -84,7 +82,6 @@
       let bounceEffectSlider = document.getElementById("bounceEffectSlider");
       let trailSlider = document.getElementById("trailSlider");
       let speedModifierSlider = document.getElementById("speedModifierSlider");
-      let collisionTreeSlider = document.getElementById("collisionTreeDepth");
       let sceneDropdown = document.getElementById("sceneSelection");
       let controlSceneStart = document.getElementById("controlSceneStart");
       let sandBoxCheckBox = document.getElementById("sandBoxCheckBox");
@@ -101,7 +98,6 @@
       speedModifierSlider.value = gravSimScene.solution.speedModifier ?? 1;
       gravSimScene.speedModifier = gravSimScene.solution.speedModifier ?? 1;
       bounceEffectSlider.value = gravSimScene.bounceEffect;
-      collisionTreeSlider.value = gravSimScene.maxDepth;
       document.getElementById("animationLoops").value = gravSimScene.animationName;
       document.getElementById("showOctTree").checked = gravSimScene.treeVisibility;
       sandBoxCheckBox.checked = gravSimScene.sandBoxMode;
@@ -135,7 +131,6 @@
         document.getElementById("spawnRange").textContent = "Spawn Range (AU): " + spawnRangeSlider.value;
         document.getElementById("bounceEffect").textContent = "Bounce Effect: " + bounceEffectSlider.value;
         document.getElementById("currentSpeed"). textContent = "Current Sim Speed: " + gravSimScene.speedModifier;
-        document.getElementById("collisionTreeDepthText").textContent = "Collision Tree Max Depth: " + gravSimScene.maxDepth;
         document.getElementById("currentGravConstant").textContent = "Current Gravity Constant: " + gravSimScene.gravConstant;
         document.getElementById("currentTimeStep").textContent = "Constant Time Step: " + roundToDecimalPlaces(timeStep.value, 4) + ", Simulation Steps/Second: " + simStepPerSecond + ", Simulation Seconds/Second: " + Math.min(roundToDecimalPlaces(simStepPerSecond * timeStep.value, 4), 1);
       }
@@ -193,11 +188,6 @@
         gravSimScene.setSpeedModifier(speedModifierSlider.value);
       }
       speedModifierSlider.addEventListener('mousemove', updateSpeedModifier);
-
-      function updateMaxDepth(){
-        gravSimScene.setMaxDepth(collisionTreeSlider.value);
-      }
-      collisionTreeSlider.addEventListener('mousemove', updateMaxDepth);
 
       function setScene(event){
         gravSimScene.desiredScene = event.target.value;

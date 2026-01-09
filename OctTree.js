@@ -18,10 +18,9 @@ class treeNode {
 }
 
 export default class OctTree extends SolutionBase {
-    constructor({variableTimeStep, constantTimeStep, maxBodies, forceMaxChildren = null, updateOctTreeEveryFrames = null, physBodies, maxDepth, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}) {
+    constructor({variableTimeStep, constantTimeStep, maxBodies, updateOctTreeEveryFrames = null, physBodies, maxBodyCount, rootRange, visibleTree = false, frameRate = 0, frameCount = 0, scene, camera, renderer, speedModifier = 1, focusPoint, gravConstant = 1}) {
         super({variableTimeStep, constantTimeStep, maxBodies, physBodies, scene, camera, renderer, frameCount, frameRate, speedModifier, focusPoint, gravConstant});
         this.physBodies = physBodies;
-        this.maxDepth = maxDepth;
         this.maxBodyCount = maxBodyCount;
         this.rootRange = rootRange * 2; //double to include negative
         this.visibleTree = visibleTree;
@@ -34,7 +33,6 @@ export default class OctTree extends SolutionBase {
         this.updateOctTreeEveryFrames = updateOctTreeEveryFrames ?? 30;
         this.rootNode = new treeNode({physBodies: this.physBodies, length: this.rootRange})
         this.naiveAnimate = false;
-        this.forceMaxChildren = forceMaxChildren ?? false;
 
         this.frameCount = 0;
         this.buildTree(this.rootNode);
@@ -56,7 +54,7 @@ export default class OctTree extends SolutionBase {
             this.rootNode.physBodies = this.physBodies;
         }
 
-        if ((this.forceMaxChildren && someTreeNode.depth < this.maxDepth) || (someTreeNode.physBodies.length > this.maxBodyCount && someTreeNode.depth < this.maxDepth && someTreeNode.children.length === 0)){ //too many items and not at max subnodes
+        if (someTreeNode.physBodies.length > this.maxBodyCount){ //too many items
             //create 8 children
             someTreeNode.children.push(new treeNode({
                 depth: someTreeNode.depth + 1,
@@ -133,7 +131,7 @@ export default class OctTree extends SolutionBase {
                 someTreeNode.mass = 0;
             }
             for (let k = 0; k < someTreeNode.children.length; k++){
-                if (someTreeNode.children[k].physBodies.length > 0 || this.forceMaxChildren){
+                if (someTreeNode.children[k].physBodies.length > 0){
                     var nodeData = this.buildTree(someTreeNode.children[k]);
                     someTreeNode.mass += nodeData[0];
                     someTreeNode.massMoment.add(nodeData[1]);
