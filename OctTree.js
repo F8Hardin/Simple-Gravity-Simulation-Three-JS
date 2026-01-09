@@ -99,26 +99,18 @@ export default class OctTree extends SolutionBase {
                 length: someTreeNode.length / 2
             }));
 
+            //draw this box -> currently overlaps cuasing performance degregation
             if (this.visibleTree){
                 for (const node of someTreeNode.children){
                     this.drawNodeBox(node, "white");
                 }
             }
 
-            let childBuckets = [[], [], [], [], [], [], [], []]; //8 for our new nodes
-            let childAccum = Array.from({ length: 8 }, () => ({
-                mass: 0,
-                massMoment: new THREE.Vector3()
-            }));
-            let parentMass = 0;
-            let parentMassMoment = new THREE.Vector3(0, 0, 0);
             let remaining = []; //in between nodes
 
             //currently allows for straddlers - watch for bouncing between sibling nodes, or add epsilon to make fit exactly one child
             for (let i = 0; i < someTreeNode.physBodies.length; i++){
                 let placed = false;
-                parentMass += someTreeNode.physBodies[i].mass;
-                parentMassMoment.add(someTreeNode.physBodies[i].position.clone().multiplyScalar(someTreeNode.physBodies[i].mass));
                 for (let j = 0; j < someTreeNode.children.length; j++){ //find where it fits - NOTE: phys body position is three.js position, children position is a list
                     let distanceX = Math.abs(someTreeNode.physBodies[i].position.x - someTreeNode.children[j].position[0]) + someTreeNode.physBodies[i].radius;
                     let distanceY = Math.abs(someTreeNode.physBodies[i].position.y - someTreeNode.children[j].position[1]) + someTreeNode.physBodies[i].radius;
@@ -126,9 +118,7 @@ export default class OctTree extends SolutionBase {
                     
                     let half = someTreeNode.children[j].length / 2
                     if (distanceX <= half && distanceY <= half && distanceZ <= half){
-                        childBuckets[j].push(someTreeNode.physBodies[i]);
-                        childAccum[j].mass += someTreeNode.physBodies[i].mass;
-                        childAccum[j].massMoment.add(someTreeNode.physBodies[i].position.clone().multiplyScalar(someTreeNode.physBodies[i].mass));
+                        someTreeNode.children[j].physBodies.push(someTreeNode.physBodies[i]);
                         placed = true; //mark as placed
                         break; //move on to next body
                     }
@@ -138,19 +128,26 @@ export default class OctTree extends SolutionBase {
                 }
             }
 
-            //store bodies in proper node and build subtree, storing remaining back in current node
-            someTreeNode.physBodies = remaining;
-            someTreeNode.mass = parentMass;
-            someTreeNode.massMoment = parentMassMoment;
+            //build subtrees
+            if (someTreeNode.mass > 0){
+                someTreeNode.mass = 0;
+            }
             for (let k = 0; k < someTreeNode.children.length; k++){
-                someTreeNode.children[k].physBodies = childBuckets[k];
-                someTreeNode.children[k].mass = childAccum[k].mass;
-                someTreeNode.children[k].massMoment = childAccum[k].massMoment;
                 if (someTreeNode.children[k].physBodies.length > 0 || this.forceMaxChildren){
-                    this.buildTree(someTreeNode.children[k]);
+                    var nodeData = this.buildTree(someTreeNode.children[k]);
+                    someTreeNode.mass += nodeData[0];
+                    someTreeNode.massMoment.add(nodeData[1]);
                 }
             }
-        } else {
+
+            //reset bodies for this node - remaining or empty bc contained in children
+            someTreeNode.physBodies = remaining;
+            for (let b of remaining){
+                someTreeNode.mass += b.mass;
+            }
+            return [someTreeNode.mass, someTreeNode.massMoment];
+
+        } else { //no child nodes
             let mass = 0;
             let moment = new THREE.Vector3();
 
@@ -161,6 +158,8 @@ export default class OctTree extends SolutionBase {
 
             someTreeNode.mass = mass;
             someTreeNode.massMoment = moment;
+
+            return [someTreeNode.mass, someTreeNode.massMoment];
         }
     }
 
