@@ -90,7 +90,8 @@ class SimulationScene {
     }
 
     this.renderer.setAnimationLoop( this.solution.animate.bind(this.solution) );
-    document.body.appendChild( this.renderer.domElement );
+    var container = document.getElementById('threeJS');
+    container.replaceChildren(this.renderer.domElement);
     this.resize();
   }
 
