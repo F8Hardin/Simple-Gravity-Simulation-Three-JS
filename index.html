@@ -32,7 +32,7 @@
         </div>
         <div>
           Camera Rotate Speed:
-          <input type="range" id="rotateSpeed" min=".005" max=".02" step=".001">
+          <input type="range" id="rotateSpeed" min=".005" max=".02" step=".001" class="slider">
         </div>
         <div class="collisionTreeControls">
           Collision Tree Visibility: 
@@ -76,6 +76,15 @@
     <script type="module">
       import { gravSimScene } from "/main.js";
       import AUModifier from './Bodies/physicsBody.js';
+      import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
+
+      let arButton = ARButton.createButton(gravSimScene.renderer)
+      arButton.style.position = "static";
+      arButton.style.bottom = "auto";
+      arButton.style.left = "auto";
+      arButton.style.right = "auto";
+      arButton.style.top = "auto";
+      document.getElementById("ControlAccessPanel").appendChild(arButton);
 
       let bodyCountTextBox = document.getElementById("bodyCountTextBox");
       let showTrailsBox = document.getElementById("showTrails");
@@ -142,6 +151,7 @@
         gravSimScene.setBodyCount(result);
         bodyCountTextBox.value = result;
         restartSim();
+        console.log
       }
       bodyCountTextBox.addEventListener('keydown', (event) => {
         if (event.key === "Enter") {

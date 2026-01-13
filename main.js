@@ -4,23 +4,20 @@ import Star from './Bodies/star.js'
 import { randFloat } from 'three/src/math/MathUtils.js';
 import OctTree from './OctTree.js';
 import NaiveSolution from './naive.js';
-import { ARButton } from 'three/examples/jsm/webxr/ARButton.js';
 
 class SimulationScene {
   constructor () {
     //variables
-    this.maxSpawnRange = 1;
+    this.maxSpawnRange = .25;
     this.bounceEffect = 0;
     this.gravConstant = 6.67e-11;
-    this.bodyCount = 2500;
+    this.bodyCount = 250;
     this.massMin = 1e5;
     this.massMax = 1e12;
     this.massSizeMult = 1 / this.massMax;
     this.constantTimeStep = 1/244;
     this.variableTimeStep = false;
     this.octTreeMaxBodies = 5000;
-
-    this.XRMode = true;
 
     //scene setup
     this.cameraStart = 250;
@@ -70,12 +67,8 @@ class SimulationScene {
     this.pivot = new THREE.Group();
     this.sceneInit();
     this.renderer = new THREE.WebGLRenderer();
-
-    if (this.XRMode){
-      this.renderer = new THREE.WebGLRenderer({ antialias: true });
-      this.renderer.xr.enabled = true;
-      document.body.appendChild(ARButton.createButton(this.renderer));
-    }
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    this.renderer.xr.enabled = true;
     this.renderer.setSize( window.innerWidth, window.innerHeight );
 
     switch ( this.animationName ) {
